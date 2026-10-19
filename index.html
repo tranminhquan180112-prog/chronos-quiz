@@ -1,13 +1,19 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos: Clock Master - The Battle Bricks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chronos - The Battle Bricks</title>
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
-            background-color: #08080f;
+            background-color: #03060d;
             color: #ffffff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -17,55 +23,47 @@
             min-height: 100vh;
             margin: 0;
             padding: 10px;
+            overflow-x: hidden;
         }
 
         .game-container {
-            background: linear-gradient(135deg, #12121f, #1a1a2e);
-            border: 3px solid #ffcc00;
+            background: linear-gradient(180deg, #090e1a 0%, #050811 100%);
+            border: 3px solid #00f0ff;
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(255, 204, 0, 0.4);
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.1);
+            position: relative;
         }
 
-        h1 { 
-            color: #ffcc00; 
-            margin-top: 0; 
-            font-size: 24px; 
-            text-transform: uppercase; 
+        h1 {
+            color: #00f0ff;
+            margin-top: 0;
+            font-size: 24px;
+            text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            text-shadow: 0 0 12px #00f0ff;
         }
 
-        p { font-size: 13px; color: #ccc; line-height: 1.5; }
+        p { font-size: 13px; color: #b8c7e0; line-height: 1.5; }
 
-        /* Menu Screen Styles */
-        .menu-screen, .game-screen { display: none; }
-        .menu-screen.active, .game-screen.active { display: block; }
+        /* --- SCREEN VISIBILITY --- */
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        .logo-icon {
-            font-size: 50px;
-            margin: 5px 0 15px 0;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 5px #ffcc00); }
-            50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #00e5ff); }
-            100% { transform: scale(1); filter: drop-shadow(0 0 5px #ffcc00); }
-        }
-
+        /* --- MENU STYLES --- */
         .instructions {
-            background: rgba(20, 20, 35, 0.9);
-            border: 1px solid #00e5ff;
-            border-left: 5px solid #00e5ff;
-            border-radius: 8px;
+            background: rgba(10, 20, 40, 0.8);
+            border: 1px solid #ff2a2a;
+            border-left: 5px solid #ff2a2a;
+            border-radius: 10px;
             padding: 12px;
             text-align: left;
             margin: 15px 0;
             font-size: 12px;
+            color: #e0e8f5;
         }
 
         .btn-diff {
@@ -73,67 +71,144 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 12px 18px;
+            padding: 14px 18px;
             margin: 10px 0;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             border: 2px solid;
             border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s ease;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
-        .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
-        .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
-        .btn-nightmare { background: rgba(255, 51, 51, 0.1); color: #ff3333; border-color: #ff3333; }
-        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.02); box-shadow: 0 0 15px currentColor; }
+        .btn-easy { background: rgba(0, 255, 102, 0.08); color: #00ff66; border-color: #00ff66; }
+        .btn-normal { background: rgba(0, 240, 255, 0.08); color: #00f0ff; border-color: #00f0ff; }
+        .btn-hard { background: rgba(255, 153, 0, 0.08); color: #ff9900; border-color: #ff9900; }
+        .btn-nightmare { background: rgba(255, 42, 42, 0.12); color: #ff2a2a; border-color: #ff2a2a; }
+        .btn-diff:active, .btn-diff:hover { transform: scale(0.98); filter: brightness(1.3); }
 
-        /* Boss Area */
-        .boss-box {
-            background: #1a1a2b;
-            border: 2px solid #ff3333;
-            border-radius: 12px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: inset 0 0 10px rgba(255, 51, 51, 0.2);
-        }
-        .boss-avatar {
-            width: 50px;
-            height: 50px;
-            background: #2a2a40;
-            border-radius: 50%;
-            border: 2px solid #ffcc00;
+        /* --- CHRONOS BOSS CUSTOM ART (ACCORDING TO IMAGE) --- */
+        .chronos-boss-art {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: radial-gradient(circle, #101c38 0%, #050811 80%);
+            border: 2px solid #ff2a2a;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            flex-shrink: 0;
-        }
-        .boss-details { text-align: left; width: 100%; }
-        .boss-name { color: #ff3333; font-weight: bold; font-size: 13px; margin-bottom: 2px; }
-        
-        .hp-bar-container {
-            width: 100%;
-            background: #111;
-            height: 10px;
-            border-radius: 5px;
             overflow: hidden;
-            border: 1px solid #444;
-            margin-top: 4px;
+            box-shadow: 0 0 20px rgba(255, 42, 42, 0.4), inset 0 0 20px rgba(0, 240, 255, 0.2);
+            margin-bottom: 15px;
         }
-        .hp-fill { width: 100%; height: 100%; background: #e63232; transition: width 0.3s; }
 
-        /* Puzzle Arena */
-        .puzzle-arena {
-            background: rgba(20, 20, 35, 0.8);
-            border: 2px dashed #00e5ff;
-            border-radius: 12px;
-            padding: 15px;
+        /* Red Energy Laser Wings (Left & Right) */
+        .boss-wing-left, .boss-wing-right {
+            position: absolute;
+            top: 50%;
+            width: 70px;
+            height: 100px;
+            border: 4px solid #ff2a2a;
+            box-shadow: 0 0 15px #ff2a2a, inset 0 0 10px #ff2a2a;
+            transform: translateY(-50%);
+        }
+        .boss-wing-left { left: -15px; border-radius: 50% 0 0 50%; border-right: none; }
+        .boss-wing-right { right: -15px; border-radius: 0 50% 50% 0; border-left: none; }
+
+        /* White Gear/Clock Ring Body */
+        .boss-core-ring {
+            width: 110px;
+            height: 110px;
+            border: 6px dashed #ffffff;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 30%, #a6f0ff 70%);
+            box-shadow: 0 0 25px #ffffff, 0 0 40px #00f0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: rotateGear 20s linear infinite;
+        }
+
+        @keyframes rotateGear {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Giant Cyan Glowing Eye */
+        .boss-eye {
+            width: 80px;
+            height: 42px;
+            background: #03060d;
+            border: 4px solid #00f0ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px #00f0ff, inset 0 0 10px #00f0ff;
+            position: absolute;
+        }
+
+        .boss-pupil {
+            width: 24px;
+            height: 24px;
+            background: #00f0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #ffffff, 0 0 20px #00f0ff;
+            animation: eyePulse 1.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes eyePulse {
+            0% { transform: scale(0.85); box-shadow: 0 0 8px #00f0ff; }
+            100% { transform: scale(1.15); box-shadow: 0 0 20px #ffffff, 0 0 30px #00f0ff; }
+        }
+
+        /* Boss Health Section */
+        .boss-hp-section {
+            width: 100%;
             margin-bottom: 12px;
+        }
+        .hp-text-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff2a2a;
+            margin-bottom: 4px;
+        }
+        .hp-bar-outer {
+            width: 100%;
+            height: 12px;
+            background: #111a2e;
+            border: 1px solid #ff2a2a;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .hp-bar-inner {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff2a2a, #ff6600);
+            transition: width 0.3s ease;
+        }
+
+        /* --- PUZZLE ARENA --- */
+        .puzzle-card {
+            background: rgba(12, 22, 42, 0.9);
+            border: 2px dashed #00f0ff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        .roman-timer-container {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff2a2a;
+            text-shadow: 0 0 10px #ff2a2a;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
         }
 
         .clocks-display {
@@ -141,153 +216,223 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 8px;
-            margin: 15px 0;
+            gap: 6px;
+            margin: 12px 0;
+            min-height: 60px;
         }
 
         .clock-emoji {
-            font-size: 45px;
-            filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.5));
+            font-size: 42px;
+            filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6));
         }
 
-        .math-symbol {
-            font-size: 24px;
+        .math-op {
+            font-size: 26px;
             font-weight: bold;
-            color: #ffcc00;
-            margin: 0 2px;
+            color: #00f0ff;
+            margin: 0 4px;
+            text-shadow: 0 0 8px #00f0ff;
         }
 
         input[type="number"] {
-            width: 130px;
+            width: 140px;
             font-size: 22px;
             text-align: center;
             padding: 8px;
-            border: 2px solid #555;
-            background: #0a0a0f;
+            border: 2px solid #00f0ff;
+            background: #060a14;
             color: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
             margin: 8px 0;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
         }
-        input[type="number"]:focus { border-color: #ffcc00; box-shadow: 0 0 10px #ffcc00; }
+        input[type="number"]:focus {
+            border-color: #ffcc00;
+            box-shadow: 0 0 15px #ffcc00;
+        }
 
-        .timer-bar {
+        .timer-bar-outer {
             width: 100%;
-            background: #222;
             height: 8px;
+            background: #111;
             border-radius: 4px;
-            margin-top: 15px;
             overflow: hidden;
+            margin-top: 10px;
         }
-        .timer-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.05s linear; }
+        .timer-bar-inner {
+            width: 100%;
+            height: 100%;
+            background: #00f0ff;
+            box-shadow: 0 0 8px #00f0ff;
+            transition: width 0.05s linear;
+        }
 
         .btn-action {
-            background: #ffcc00;
-            color: #000;
+            background: #00f0ff;
+            color: #03060d;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 15px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 8px;
-            transition: 0.2s;
+            margin-top: 10px;
+            text-transform: uppercase;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+            transition: all 0.2s;
         }
-        .btn-action:hover { background: #e6b800; transform: scale(1.05); }
+        .btn-action:active, .btn-action:hover {
+            background: #ffcc00;
+            box-shadow: 0 0 15px #ffcc00;
+            transform: scale(1.03);
+        }
 
-        #result-msg { font-size: 15px; font-weight: bold; margin-top: 10px; min-height: 22px; }
+        #result-msg {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 22px;
+        }
     </style>
 </head>
 <body>
 
     <div class="game-container">
         <!-- MENU SCREEN -->
-        <div id="menu-screen" class="menu-screen active">
-            <h1>CHRONOS TIME TRIALS</h1>
-            <div class="logo-icon">⏳🕰️⏱️</div>
-            <div class="instructions">
-                <b>📖 Hướng dẫn quy tắc thời gian:</b><br>
-                • Quan sát các **biểu tượng đồng hồ** xuất hiện trên màn hình.<br>
-                • Tự đọc giờ trên mặt đồng hồ (Ví dụ: 🕒 = 3h, 🕕 = 6h, 🕛 = 12h...).<br>
-                • Thực hiện phép tính cộng/trừ các giờ đó theo cấp độ.<br>
-                • Giải đúng: Gây sát thương Chronos. Sai/Hết giờ: Bị phạt nặng!
+        <div id="menu-screen" class="screen active">
+            <h1>CHRONOS: BATTLE BRICKS</h1>
+            
+            <!-- Boss Visual Preview in Menu -->
+            <div class="chronos-boss-art">
+                <div class="boss-wing-left"></div>
+                <div class="boss-wing-right"></div>
+                <div class="boss-core-ring"></div>
+                <div class="boss-eye"><div class="boss-pupil"></div></div>
             </div>
-            <p style="color: #ffcc00; font-weight: bold;">CHỌN ĐỘ KHÓ:</p>
-            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng hồ)</span> <span>30s</span></button>
-            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng hồ)</span> <span>20s</span></button>
-            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng hồ)</span> <span>15s</span></button>
-            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng hồ)</span> <span>15s</span></button>
+
+            <div class="instructions">
+                <b>📖 HƯỚNG DẪN GIẢI MÃ CHRONOS:</b><br>
+                • Đọc giờ trên các biểu tượng đồng hồ (🕒=3h, 🕕=6h, 🕘=9h...).<br>
+                • Tính kết quả theo phép tính và quy chuẩn hệ 12 giờ.<br>
+                • Bộ đếm ngược hiển thị bằng <b>SỐ LA MÃ</b> (XXXs, XXs, XVs...).<br>
+                • Nhập đáp án đúng để tiêu diệt Boss Chronos!
+            </div>
+
+            <p style="color: #00f0ff; font-weight: bold;">CHỌN CHẾ ĐỘ THỬ THÁCH:</p>
+            <button class="btn-diff btn-easy" onclick="startGame('easy')">
+                <span>1. EASY (1 ĐỒNG HỒ)</span> <span>XXXs (30s)</span>
+            </button>
+            <button class="btn-diff btn-normal" onclick="startGame('normal')">
+                <span>2. NORMAL (2 ĐỒNG HỒ)</span> <span>XXs (20s)</span>
+            </button>
+            <button class="btn-diff btn-hard" onclick="startGame('hard')">
+                <span>3. HARD (3 ĐỒNG HỒ)</span> <span>XVs (15s)</span>
+            </button>
+            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')">
+                <span>4. NIGHTMARE (4 ĐỒNG HỒ)</span> <span>XVs (15s)</span>
+            </button>
         </div>
 
         <!-- GAME SCREEN -->
-        <div id="game-screen" class="game-screen">
-            <!-- Boss Chronos -->
-            <div class="boss-box">
-                <div class="boss-avatar">⏳</div>
-                <div class="boss-details">
-                    <div class="boss-name">CHRONOS (LORD OF TIME)</div>
-                    <div style="font-size: 11px; color: #aaa;">HP: <span id="hp-text">500</span>/500</div>
-                    <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
+        <div id="game-screen" class="screen">
+            <!-- Boss Battle Visual -->
+            <div class="chronos-boss-art">
+                <div class="boss-wing-left"></div>
+                <div class="boss-wing-right"></div>
+                <div class="boss-core-ring"></div>
+                <div class="boss-eye"><div class="boss-pupil"></div></div>
+            </div>
+
+            <div class="boss-hp-section">
+                <div class="hp-text-label">
+                    <span>LORD CHRONOS</span>
+                    <span>HP: <span id="hp-text">500</span>/500</span>
+                </div>
+                <div class="hp-bar-outer">
+                    <div class="hp-bar-inner" id="hp-bar"></div>
                 </div>
             </div>
 
             <div id="puzzle-wrapper">
-                <div class="puzzle-arena">
-                    <p style="margin: 0 0 5px 0; color: #00e5ff; font-weight: bold; font-size: 14px;">ĐỌC GIỜ VÀ TÍNH TOÁN!</p>
-                    
-                    <!-- Khu vực hiển thị chuỗi biểu tượng đồng hồ và phép tính -->
-                    <div class="clocks-display" id="clocks-container">
-                        <!-- Được render bằng JavaScript -->
+                <div class="puzzle-card">
+                    <!-- Thời gian dạng Số La Mã -->
+                    <div class="roman-timer-container">
+                        THỜI GIAN: <span id="roman-timer">XXXs</span>
                     </div>
+
+                    <!-- Hiển thị các đồng hồ -->
+                    <div class="clocks-display" id="clocks-container"></div>
 
                     <input type="number" id="user-ans" placeholder="Nhập giờ" pattern="[0-9]*" inputmode="numeric">
                     <br>
                     <button class="btn-action" onclick="submitAnswer()">GỬI ĐÁP ÁN</button>
-                    
-                    <div class="timer-bar">
-                        <div class="timer-fill" id="timer-line"></div>
+
+                    <div class="timer-bar-outer">
+                        <div class="timer-bar-inner" id="timer-line"></div>
                     </div>
                 </div>
             </div>
 
             <div id="result-msg"></div>
             <br>
-            <button class="btn-action" id="back-menu-btn" style="display:none; background:#444; color:#fff;" onclick="returnToMenu()">QUAY LẠI MENU</button>
+            <button class="btn-action" id="back-btn" style="display:none; background:#334466; color:#fff;" onclick="returnToMenu()">QUAY LẠI MENU</button>
         </div>
     </div>
 
     <script>
         let currentHp = 500;
-        let maxHp = 500;
+        const maxHp = 500;
         let correctAnswer = 0;
-        let maxTime = 30000;
-        let timeLeft = 30000;
+        let maxTimeMs = 30000;
         let timerInterval = null;
         let isPlaying = false;
-        let currentDifficulty = 'normal';
+        let currentDiff = 'normal';
 
-        // Danh sách các emoji đồng hồ chuẩn ứng với giờ từ 1 đến 12
-        // 🕛(12), 🕐(1), 🕑(2), 🕒(3), 🕓(4), 🕔(5), 🕕(6), 🕖(7), 🕗(8), 🕘(9), 🕙(10), 🕚(11)
+        // Emoji đồng hồ chuẩn tương ứng từ 1h đến 12h
         const clockEmojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
 
-        const difficulties = {
+        const diffSettings = {
             easy: { time: 30000, count: 1 },
             normal: { time: 20000, count: 2 },
             hard: { time: 15000, count: 3 },
             nightmare: { time: 15000, count: 4 }
         };
 
+        // Hàm chuyển đổi Số Nguyên -> Số La Mã
+        function toRoman(num) {
+            if (num <= 0) return "0s";
+            const lookup = [
+                { val: 1000, str: 'M' }, { val: 900, str: 'CM' },
+                { val: 500, str: 'D' },  { val: 400, str: 'CD' },
+                { val: 100, str: 'C' },  { val: 90, str: 'XC' },
+                { val: 50, str: 'L' },   { val: 40, str: 'XL' },
+                { val: 10, str: 'X' },   { val: 9, str: 'IX' },
+                { val: 5, str: 'V' },    { val: 4, str: 'IV' },
+                { val: 1, str: 'I' }
+            ];
+            let roman = '';
+            for (let i of lookup) {
+                while (num >= i.val) {
+                    roman += i.str;
+                    num -= i.val;
+                }
+            }
+            return roman + "s";
+        }
+
         function startGame(diff) {
-            currentDifficulty = diff;
-            maxTime = difficulties[diff].time;
+            currentDiff = diff;
+            maxTimeMs = diffSettings[diff].time;
             currentHp = 500;
+            
             document.getElementById("hp-text").innerText = currentHp;
             document.getElementById("hp-bar").style.width = "100%";
             
             document.getElementById("menu-screen").classList.remove("active");
             document.getElementById("game-screen").classList.add("active");
-            document.getElementById("back-menu-btn").style.display = "none";
-            
+            document.getElementById("back-btn").style.display = "none";
+
             nextPuzzle();
         }
 
@@ -299,41 +444,33 @@
 
         function nextPuzzle() {
             if (currentHp <= 0) return;
-            
+
             isPlaying = true;
             document.getElementById("puzzle-wrapper").style.display = "block";
             document.getElementById("result-msg").innerText = "";
-            
-            let count = difficulties[currentDifficulty].count;
+
+            let count = diffSettings[currentDiff].count;
             let hours = [];
-            let symbols = [];
-            
-            // Random giờ cho từng đồng hồ (từ 1 đến 12)
+
             for (let i = 0; i < count; i++) {
-                let h = Math.floor(Math.random() * 12) + 1;
-                hours.push(h);
+                hours.push(Math.floor(Math.random() * 12) + 1);
             }
 
-            // Tính toán kết quả và tạo chuỗi HTML hiển thị
             let result = hours[0];
             let htmlContent = `<div class="clock-emoji">${clockEmojis[hours[0] % 12]}</div>`;
 
             for (let i = 1; i < count; i++) {
-                let isAdd = Math.random() > 0.3; // Xác suất phép cộng cao hơn một chút cho trực quan
+                let isAdd = Math.random() > 0.35;
                 let sym = isAdd ? "+" : "-";
-                symbols.push(sym);
-                
-                if (isAdd) {
-                    result += hours[i];
-                } else {
-                    result -= hours[i];
-                }
 
-                htmlContent += `<span class="math-symbol">${sym}</span>`;
+                if (isAdd) result += hours[i];
+                else result -= hours[i];
+
+                htmlContent += `<span class="math-op">${sym}</span>`;
                 htmlContent += `<div class="clock-emoji">${clockEmojis[hours[i] % 12]}</div>`;
             }
 
-            // Chuẩn hóa theo hệ đồng hồ 12 giờ (Modulo 12)
+            // Quy đổi kết quả theo hệ 12 giờ
             correctAnswer = ((result - 1) % 12 + 1);
             if (correctAnswer <= 0) correctAnswer += 12;
 
@@ -343,29 +480,29 @@
             inputEl.value = "";
             inputEl.focus();
 
-            // Chạy thanh thời gian đếm ngược
-            timeLeft = maxTime;
-            const timerLine = document.getElementById("timer-line");
-            timerLine.style.width = "100%";
-
+            // Khởi chạy đếm ngược thời gian
             clearInterval(timerInterval);
             let startTime = Date.now();
-            
+
             timerInterval = setInterval(() => {
                 let elapsed = Date.now() - startTime;
-                let remaining = Math.max(0, maxTime - elapsed);
-                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let remainingMs = Math.max(0, maxTimeMs - elapsed);
+                let remainingSec = Math.ceil(remainingMs / 1000);
 
-                if (remaining <= 0) {
+                // Cập nhật số La Mã & thanh thời gian
+                document.getElementById("roman-timer").innerText = toRoman(remainingSec);
+                document.getElementById("timer-line").style.width = (remainingMs / maxTimeMs * 100) + "%";
+
+                if (remainingMs <= 0) {
                     clearInterval(timerInterval);
-                    handleFailure("HẾT GIỜ! Chronos trừng phạt bạn.");
+                    handleFailure("HẾT GIỜ! Chronos tung đòn tất sát.");
                 }
-            }, 30);
+            }, 50);
         }
 
         function submitAnswer() {
             if (!isPlaying) return;
-            
+
             let val = parseInt(document.getElementById("user-ans").value);
             if (isNaN(val)) return;
 
@@ -375,31 +512,32 @@
             if (val === correctAnswer) {
                 currentHp -= 125;
                 if (currentHp < 0) currentHp = 0;
+
                 document.getElementById("hp-text").innerText = currentHp;
                 document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
 
                 if (currentHp <= 0) {
                     document.getElementById("puzzle-wrapper").style.display = "none";
-                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHIẾN THẮNG! Chronos đã bị khuất phục.</span>";
-                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHIẾN THẮNG! Bạn đã tiêu diệt Boss Chronos!</span>";
+                    document.getElementById("back-btn").style.display = "inline-block";
                 } else {
                     document.getElementById("puzzle-wrapper").style.display = "none";
-                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos nhận sát thương.</span>";
-                    setTimeout(nextPuzzle, 2000);
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Gây 125 sát thương lên Chronos.</span>";
+                    setTimeout(nextPuzzle, 1800);
                 }
             } else {
-                handleFailure("SAI ĐÁP ÁN! Chronos phản công.");
+                handleFailure("SAI ĐÁP ÁN! Chronos phản công cực mạnh.");
             }
         }
 
         function handleFailure(msg) {
             isPlaying = false;
             document.getElementById("puzzle-wrapper").style.display = "none";
-            document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
-            document.getElementById("back-menu-btn").style.display = "inline-block";
+            document.getElementById("result-msg").innerHTML = `<span style='color: #ff2a2a;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
+            document.getElementById("back-btn").style.display = "inline-block";
         }
 
-        // Hỗ trợ phím Enter cho cả PC và Mobile
+        // Hỗ trợ phím Enter cho PC và điện thoại
         document.getElementById("user-ans").addEventListener("keypress", function(e) {
             if (e.key === 'Enter') {
                 submitAnswer();
@@ -408,3 +546,4 @@
     </script>
 </body>
 </html>
+```
