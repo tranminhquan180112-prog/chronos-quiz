@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - The Battle Bricks</title>
-    <!-- Nhúng thư viện Three.js để dựng đồ họa 3D -->
+    <title>Chronos Quiz - The Battle Bricks 3D</title>
+    <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -18,7 +18,7 @@
             user-select: none;
         }
 
-        /* Container 3D Canvas */
+        /* Thẻ Canvas 3D */
         #canvas-container {
             position: absolute;
             top: 0;
@@ -28,7 +28,7 @@
             z-index: 1;
         }
 
-        /* Giao diện UI đè lên 3D Canvas */
+        /* Lớp giao diện người dùng đè lên 3D */
         .ui-layer {
             position: absolute;
             top: 0;
@@ -43,25 +43,26 @@
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.85);
+            background: rgba(10, 10, 20, 0.88);
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 20px 25px;
             width: 90%;
             max-width: 480px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.4);
             pointer-events: auto;
             backdrop-filter: blur(8px);
         }
 
         .game-title {
-            font-size: 30px;
+            font-size: 32px;
             font-weight: 900;
             color: #00ffff;
             margin: 0;
             letter-spacing: 3px;
             text-shadow: 0 0 15px #00ffff;
+            text-transform: uppercase;
         }
 
         .game-subtitle {
@@ -73,15 +74,24 @@
         }
 
         .instructions {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             border-left: 4px solid #ffcc00;
-            padding: 10px;
+            padding: 10px 12px;
             text-align: left;
             font-size: 11px;
             color: #ddd;
             line-height: 1.5;
             margin-bottom: 15px;
             border-radius: 6px;
+        }
+
+        .difficulty-header {
+            font-size: 13px;
+            color: #ffcc00;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .btn-diff {
@@ -105,13 +115,13 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.02); box-shadow: 0 0 15px currentColor; }
 
-        /* Game Screen HUD */
+        /* HUD Trận đấu */
         .hud-overlay {
             position: absolute;
             top: 15px;
             width: 90%;
             max-width: 480px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             border: 1px solid rgba(255, 51, 51, 0.5);
             border-radius: 12px;
             padding: 10px 15px;
@@ -121,7 +131,7 @@
 
         .hp-bar-container {
             width: 100%;
-            background: #222;
+            background: #111;
             height: 10px;
             border-radius: 5px;
             overflow: hidden;
@@ -140,7 +150,7 @@
         }
 
         .clock-emoji {
-            font-size: 40px;
+            font-size: 42px;
             filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
         }
 
@@ -200,24 +210,25 @@
 </head>
 <body>
 
-    <!-- Canvas 3D -->
+    <!-- Khung chứa Canvas 3D -->
     <div id="canvas-container"></div>
 
-    <!-- UI Overlay Layer -->
+    <!-- Lớp Giao diện UI -->
     <div class="ui-layer">
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="game-card screens active">
-            <div class="game-title">Chronos Quiz 3D</div>
-            <div class="game-subtitle">THE BATTLE BRICKS</div>
+            <div class="game-title">Chronos Quiz</div>
+            <div class="game-subtitle">THE BATTLE BRICKS 3D</div>
             
             <div class="instructions">
-                <b>⏳ QUY TẮC THỜI GIAN:</b><br>
-                • Đọc giờ trực tiếp từ biểu tượng mặt đồng hồ.<br>
-                • Tính tổng/hiệu số giờ (Hệ thống đồng hồ 12h).<br>
-                • Bộ đếm ngược bằng <b>Số La Mã</b>. Hãy giải nhanh trước khi Chronos tiêu diệt bạn!
+                <b>⏳ HƯỚNG DẪN THỬ THÁCH THỜI GIAN:</b><br>
+                • Quan sát các biểu tượng mặt đồng hồ xuất hiện trên màn hình.<br>
+                • Đọc giờ trực tiếp từ mặt đồng hồ (Ví dụ: 🕒 = 3h, 🕕 = 6h, 🕛 = 12h...).<br>
+                • Tính tổng/hiệu số giờ (Hệ thống đồng hồ 12 giờ).<br>
+                • Bộ đếm ngược bằng <b>Số La Mã</b>. Phản ứng cực nhanh trước khi hết giờ!
             </div>
 
-            <div style="font-size: 12px; color: #ffcc00; font-weight: bold; margin-bottom: 8px;">CHỌN ĐỘ KHÓ:</div>
+            <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
             <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng hồ)</span> <span>XXXs</span></button>
             <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng hồ)</span> <span>XXs</span></button>
             <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng hồ)</span> <span>XVs</span></button>
@@ -226,9 +237,324 @@
 
         <!-- GAME SCREEN -->
         <div id="game-screen" class="screens" style="width:100%; height:100%; position:relative; display:none;">
-            <!-- HUD Máu Boss ở trên -->
+            <!-- HUD Máu Boss -->
             <div style="display:flex; justify-content:center; width:100%;">
                 <div class="hud-overlay">
-                    <div style="font-size: 13px; color: #ff3333; font-weight: bold;">CHRONOS 3D (LORD OF TIME)</div>
+                    <div style="font-size: 13px; color: #ff3333; font-weight: bold;">CHRONOS (LORD OF TIME)</div>
                     <div style="font-size: 11px; color: #aaa; margin-top: 2px;">HP: <span id="hp-text">500</span>/500</div>
-                    <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div>
+                    <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
+                </div>
+            </div>
+
+            <!-- Khung Câu đố ở vị trí trung tâm -->
+            <div style="position:absolute; bottom: 25px; width:100%; display:flex; justify-content:center; pointer-events:none;">
+                <div class="game-card" id="puzzle-wrapper">
+                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 12px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+                    
+                    <div class="clocks-display" id="clocks-container"></div>
+
+                    <input type="number" id="user-ans" placeholder="Nhập giờ" pattern="[0-9]*" inputmode="numeric">
+                    <br>
+                    <button class="btn-action" onclick="submitAnswer()">GỬI ĐÁP ÁN</button>
+                    
+                    <!-- Thời gian số La Mã -->
+                    <div class="roman-timer" id="roman-timer-text">XXX</div>
+
+                    <div class="timer-bar">
+                        <div class="timer-fill" id="timer-line"></div>
+                    </div>
+
+                    <div id="result-msg" style="margin-top:5px; font-size:13px; min-height:18px;"></div>
+                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#444; color:#fff; margin-top:8px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhúng Trình phát nhạc tự động từ YouTube -->
+    <div class="audio-iframe">
+        <!-- Nhạc Menu: Super Meat Boy Soundtrack - World 6 Map Screen -->
+        <iframe id="menu-audio" width="100" height="100" src="https://www.youtube.com/embed/cH_Nk_PPCzQ?enablejsapi=1&loop=1&playlist=cH_Nk_PPCzQ" allow="autoplay"></iframe>
+        <!-- Nhạc Boss: The Battle Bricks OST - Time's Illusion -->
+        <iframe id="boss-audio" width="100" height="100" src="https://www.youtube.com/embed/0V49vqh2sTg?enablejsapi=1&loop=1&playlist=0V49vqh2sTg" allow="autoplay"></iframe>
+    </div>
+
+    <script>
+        /* ================= 1. DỰNG MÔ HÌNH 3D CHRONOS (THREE.JS) ================= */
+        let scene, camera, renderer;
+        let chronosEye, clockRingMesh, redPillars = [];
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            
+            // Camera và Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x03030a, 0.03);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 8);
+
+            // WebGL Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Hệ thống chiếu sáng
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 2.5, 25);
+            pointLight.position.set(0, 0, 5);
+            scene.add(pointLight);
+
+            const redLight = new THREE.PointLight(0xff0000, 3.5, 20);
+            redLight.position.set(0, 2, 2);
+            scene.add(redLight);
+
+            // --- Thiết kế Boss Chronos 3D theo ảnh mẫu ---
+            // 1. Con mắt Chronos (Mắt xanh glowing ở giữa)
+            const eyeGeo = new THREE.SphereGeometry(1.2, 32, 16);
+            eyeGeo.scale(1.8, 0.8, 0.8);
+            const eyeMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                emissive: 0x00e5ff,
+                emissiveIntensity: 0.9,
+                shininess: 100
+            });
+            chronosEye = new THREE.Mesh(eyeGeo, eyeMat);
+            scene.add(chronosEye);
+
+            // Con ngươi mắt
+            const pupilGeo = new THREE.SphereGeometry(0.5, 32, 16);
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+            const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+            pupil.position.z = 0.6;
+            chronosEye.add(pupil);
+
+            // 2. Vòng tròn đồng hồ 3D xoay phía sau
+            const ringGeo = new THREE.TorusGeometry(2.5, 0.08, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+            clockRingMesh = new THREE.Mesh(ringGeo, ringMat);
+            clockRingMesh.position.z = -0.5;
+            scene.add(clockRingMesh);
+
+            // 3. Viền đỏ năng lượng 2 bên
+            const pillarGeo = new THREE.BoxGeometry(0.4, 6, 0.4);
+            const pillarMat = new THREE.MeshPhongMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.6 });
+            
+            const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            leftPillar.position.set(-4, 0, -1);
+            leftPillar.rotation.z = -0.25;
+            scene.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            rightPillar.position.set(4, 0, -1);
+            rightPillar.rotation.z = 0.25;
+            scene.add(rightPillar);
+
+            // Vòng lặp Render 3D Animation
+            function animate() {
+                requestAnimationFrame(animate);
+
+                if (clockRingMesh) clockRingMesh.rotation.z -= 0.01;
+
+                if (chronosEye) {
+                    chronosEye.position.y = Math.sin(Date.now() * 0.002) * 0.15;
+                    chronosEye.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Tự động co giãn màn hình
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        /* ================= 2. LOGIC GAME & ÂM THANH ================= */
+        let currentHp = 500;
+        let maxHp = 500;
+        let correctAnswer = 0;
+        let maxTime = 30000;
+        let timeLeft = 30000;
+        let timerInterval = null;
+        let isPlaying = false;
+        let currentDifficulty = 'normal';
+
+        const clockEmojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
+
+        const difficulties = {
+            easy: { time: 30000, count: 1 },
+            normal: { time: 20000, count: 2 },
+            hard: { time: 15000, count: 3 },
+            nightmare: { time: 15000, count: 4 }
+        };
+
+        // Chuyển đổi số sang Số La Mã
+        function toRoman(num) {
+            if (num <= 0) return "0";
+            const romanMap = [
+                { val: 40, str: "XL" }, { val: 10, str: "X" },
+                { val: 9, str: "IX" }, { val: 5, str: "V" },
+                { val: 4, str: "IV" }, { val: 1, str: "I" }
+            ];
+            let res = "";
+            for (let i = 0; i < romanMap.length; i++) {
+                while (num >= romanMap[i].val) {
+                    res += romanMap[i].str;
+                    num -= romanMap[i].val;
+                }
+            }
+            return res;
+        }
+
+        // Quản lý âm thanh YouTube
+        function playTrack(trackType) {
+            const menuIframe = document.getElementById("menu-audio");
+            const bossIframe = document.getElementById("boss-audio");
+
+            if (trackType === 'menu') {
+                menuIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            } else if (trackType === 'boss') {
+                menuIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                bossIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
+        }
+
+        // Kích hoạt nhạc sau cú chạm màn hình đầu tiên
+        document.body.addEventListener('click', function initAudio() {
+            if (!isPlaying) playTrack('menu');
+        }, { once: true });
+
+        function startGame(diff) {
+            currentDifficulty = diff;
+            maxTime = difficulties[diff].time;
+            currentHp = 500;
+            document.getElementById("hp-text").innerText = currentHp;
+            document.getElementById("hp-bar").style.width = "100%";
+            
+            document.getElementById("menu-screen").classList.remove("active");
+            document.getElementById("game-screen").style.display = "block";
+            document.getElementById("back-menu-btn").style.display = "none";
+            
+            playTrack('boss');
+            nextPuzzle();
+        }
+
+        function returnToMenu() {
+            clearInterval(timerInterval);
+            document.getElementById("game-screen").style.display = "none";
+            document.getElementById("menu-screen").classList.add("active");
+            playTrack('menu');
+        }
+
+        function nextPuzzle() {
+            if (currentHp <= 0) return;
+            
+            isPlaying = true;
+            document.getElementById("puzzle-wrapper").style.display = "block";
+            document.getElementById("result-msg").innerText = "";
+            
+            let count = difficulties[currentDifficulty].count;
+            let hours = [];
+            
+            for (let i = 0; i < count; i++) {
+                hours.push(Math.floor(Math.random() * 12) + 1);
+            }
+
+            let result = hours[0];
+            let htmlContent = `<div class="clock-emoji">${clockEmojis[hours[0] % 12]}</div>`;
+
+            for (let i = 1; i < count; i++) {
+                let isAdd = Math.random() > 0.3;
+                let sym = isAdd ? "+" : "-";
+                
+                if (isAdd) result += hours[i];
+                else result -= hours[i];
+
+                htmlContent += `<span class="math-symbol">${sym}</span>`;
+                htmlContent += `<div class="clock-emoji">${clockEmojis[hours[i] % 12]}</div>`;
+            }
+
+            correctAnswer = ((result - 1) % 12 + 1);
+            if (correctAnswer <= 0) correctAnswer += 12;
+
+            document.getElementById("clocks-container").innerHTML = htmlContent;
+
+            let inputEl = document.getElementById("user-ans");
+            inputEl.value = "";
+            inputEl.focus();
+
+            timeLeft = maxTime;
+            const timerLine = document.getElementById("timer-line");
+            const romanText = document.getElementById("roman-timer-text");
+            
+            timerLine.style.width = "100%";
+            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
+
+            clearInterval(timerInterval);
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = Math.max(0, maxTime - elapsed);
+                
+                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let secondsLeft = Math.ceil(remaining / 1000);
+                romanText.innerText = toRoman(secondsLeft);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("HẾT GIỜ! Chronos giáng đòn tất sát.");
+                }
+            }, 50);
+        }
+
+        function submitAnswer() {
+            if (!isPlaying) return;
+            
+            let val = parseInt(document.getElementById("user-ans").value);
+            if (isNaN(val)) return;
+
+            clearInterval(timerInterval);
+            isPlaying = false;
+
+            if (val === correctAnswer) {
+                currentHp -= 125;
+                if (currentHp < 0) currentHp = 0;
+                document.getElementById("hp-text").innerText = currentHp;
+                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
+
+                if (currentHp <= 0) {
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHIẾN THẮNG! Chronos đã bị tiêu diệt.</span>";
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                } else {
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos nhận sát thương.</span>";
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI ĐÁP ÁN! Chronos phản công.");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
+            document.getElementById("back-menu-btn").style.display = "inline-block";
+        }
+
+        document.getElementById("user-ans").addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') submitAnswer();
+        });
+
+        // Khởi động 3D khi nạp xong trang
+        window.onload = init3D;
+    </script>
+</body>
+</html>
