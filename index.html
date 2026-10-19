@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Fixed Start Button</title>
+    <title>Chronos Quiz 3D - Fixed Startup</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -121,13 +121,13 @@
 
         /* Màn hình chào ban đầu */
         #start-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             background: rgba(3, 3, 8, 0.98);
-            z-index: 100;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -301,7 +301,7 @@
             <h1 style="color: #00ffff; font-size: 30px; margin: 0; text-shadow: 0 0 15px #00ffff;">CHRONOS QUIZ 3D</h1>
             <p style="color: #ff3366; letter-spacing: 2px; font-weight: bold; margin-top: 5px;">THE BATTLE BRICKS</p>
         </div>
-        <button class="btn-start-game" id="start-btn">CHẠM ĐỂ BẮT ĐẦU</button>
+        <button class="btn-start-game" onclick="startGameApp()">CHẠM ĐỂ BẮT ĐẦU</button>
     </div>
 
     <!-- Nút quay lại Menu khi đang chơi -->
@@ -385,13 +385,14 @@
         let isMusicEnabled = true;
         let currentTrack = 'menu';
 
-        document.getElementById("start-btn").addEventListener("click", function() {
+        function startGameApp() {
             document.getElementById("start-overlay").style.display = "none";
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            init3D();
             playTrack('menu');
-        });
+        }
 
         function toggleMusic() {
             isMusicEnabled = !isMusicEnabled;
@@ -447,4 +448,188 @@
             const notes = [300, 260, 220, 150];
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
-                const gain = audioCtx.
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + index * 0.15);
+                gain.gain.setValueAtTime(0.4, now + index * 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + index * 0.15);
+                osc.stop(now + index * 0.15 + 0.2);
+            });
+        }
+
+        function playTrack(trackType) {
+            currentTrack = trackType;
+            if (!isMusicEnabled) return;
+            const menuIframe = document.getElementById("menu-audio");
+            const bossIframe = document.getElementById("boss-audio");
+            if (trackType === 'menu') {
+                menuIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            } else if (trackType === 'boss') {
+                menuIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                bossIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
+        }
+
+        function stopAllMusic() {
+            const menuIframe = document.getElementById("menu-audio");
+            const bossIframe = document.getElementById("boss-audio");
+            menuIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        }
+
+        let scene, camera, renderer;
+        let chronosEye, clockRingMesh;
+        let is3DInitialized = false;
+
+        function init3D() {
+            if (is3DInitialized) return;
+            is3DInitialized = true;
+
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x03030a, 0.03);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 8);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 2.5, 25);
+            pointLight.position.set(0, 0, 5);
+            scene.add(pointLight);
+
+            const redLight = new THREE.PointLight(0xff0000, 3.5, 20);
+            redLight.position.set(0, 2, 2);
+            scene.add(redLight);
+
+            const eyeGeo = new THREE.SphereGeometry(1.2, 32, 16);
+            eyeGeo.scale(1.8, 0.8, 0.8);
+            const eyeMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                emissive: 0x00e5ff,
+                emissiveIntensity: 0.9,
+                shininess: 100
+            });
+            chronosEye = new THREE.Mesh(eyeGeo, eyeMat);
+            scene.add(chronosEye);
+
+            const pupilGeo = new THREE.SphereGeometry(0.5, 32, 16);
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+            const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+            pupil.position.z = 0.6;
+            chronosEye.add(pupil);
+
+            const ringGeo = new THREE.TorusGeometry(2.5, 0.08, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+            clockRingMesh = new THREE.Mesh(ringGeo, ringMat);
+            clockRingMesh.position.z = -0.5;
+            scene.add(clockRingMesh);
+
+            const pillarGeo = new THREE.BoxGeometry(0.4, 6, 0.4);
+            const pillarMat = new THREE.MeshPhongMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.6 });
+            
+            const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            leftPillar.position.set(-4, 0, -1);
+            leftPillar.rotation.z = -0.25;
+            scene.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            rightPillar.position.set(4, 0, -1);
+            rightPillar.rotation.z = 0.25;
+            scene.add(rightPillar);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (clockRingMesh) clockRingMesh.rotation.z -= 0.01;
+                if (chronosEye) {
+                    chronosEye.position.y = Math.sin(Date.now() * 0.002) * 0.15;
+                    chronosEye.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
+                }
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        let currentHp = 42000;
+        const maxHp = 42000;
+        const damagePerHit = 6000;
+        let currentLives = 3;
+        let correctAnswer = 0;
+        let maxTime = 30000;
+        let timerInterval = null;
+        let isPlaying = false;
+        let currentDifficulty = 'normal';
+
+        const clockEmojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
+
+        const difficulties = {
+            easy: { time: 30000, count: 1, lives: 3 },
+            normal: { time: 20000, count: 2, lives: 3 },
+            hard: { time: 15000, count: 3, lives: 2 },
+            nightmare: { time: 15000, count: 4, lives: 1 }
+        };
+
+        const victoryQuotes = {
+            easy: "I was just testing you",
+            normal: "Alright, time to get serious",
+            hard: "Something is very wrong",
+            nightmare: "It’s impossible—how could you possibly pull it off?"
+        };
+
+        function toRoman(num) {
+            if (num <= 0) return "0";
+            const romanMap = [
+                { val: 40, str: "XL" }, { val: 10, str: "X" },
+                { val: 9, str: "IX" }, { val: 5, str: "V" },
+                { val: 4, str: "IV" }, { val: 1, str: "I" }
+            ];
+            let res = "";
+            for (let i = 0; i < romanMap.length; i++) {
+                while (num >= romanMap[i].val) {
+                    res += romanMap[i].str;
+                    num -= romanMap[i].val;
+                }
+            }
+            return res;
+        }
+
+        function updateLivesDisplay() {
+            let hearts = "";
+            for (let i = 0; i < currentLives; i++) {
+                hearts += "❤️";
+            }
+            document.getElementById("lives-text").innerText = hearts;
+        }
+
+        function startGame(diff) {
+            currentDifficulty = diff;
+            maxTime = difficulties[diff].time;
+            currentHp = maxHp;
+            currentLives = difficulties[diff].lives;
+
+            document.getElementById("hp-text").innerText = currentHp;
+            document.getElementById("hp-bar").style.width = "100%";
+            updateLivesDisplay();
+            
+            document.getElementById("menu-screen").classList.remove("active");
+            document.getElementById("game-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "block";
+            document.getElementById("victory-back-btn").style.display = "none";
+            document.getElementById("user-ans").style.display = "inline-block";
+            document.querySelector("button[onclick='submitAnswer()']").style.display = "inline-block";
