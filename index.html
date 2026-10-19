@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos Clock Puzzle System</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #0d0d11;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .puzzle-card {
+            background: #181824;
+            border: 3px solid #ffcc00;
+            border-radius: 12px;
+            padding: 30px;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+        }
+
+        .title { color: #ffcc00; margin-top: 0; }
+        .question { font-size: 32px; font-weight: bold; margin: 20px 0; color: #00e5ff; }
+        
+        input[type="number"] {
+            width: 120px;
+            font-size: 24px;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid #555;
+            background: #0a0a0f;
+            color: #fff;
+            border-radius: 6px;
+            outline: none;
+        }
+        input[type="number"]:focus { border-color: #ffcc00; }
+
+        .timer-bar {
+            width: 100%;
+            background: #333;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .timer-fill {
+            width: 100%;
+            height: 100%;
+            background: #ff3333;
+            transition: width 0.1s linear;
+        }
+
+        .btn-trigger {
+            margin-top: 25px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-trigger:hover { background: #e6b800; }
+
+        #result-message {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="puzzle-card">
+        <h2 class="title">COUNT YOUR DAYS!</h2>
+        <div id="puzzle-content" style="display: none;">
+            <div class="question" id="math-q">? + ? = ?</div>
+            <input type="number" id="user-ans" placeholder="?" autofocus />
+            <div class="timer-bar">
+                <div class="timer-fill" id="timer-line"></div>
+            </div>
+            <p style="color: #aaa; font-size: 12px; margin-top: 8px;">Nhấn <b>ENTER</b> để gửi kết quả</p>
+        </div>
+
+        <button class="btn-trigger" id="start-btn" onclick="startPuzzle()">KÍCH HOẠT CÂU ĐỐ</button>
+        <div id="result-message"></div>
+    </div>
+
+    <script>
+        let correctAnswer = 0;
+        let timeLeft = 6000; // 6 giây (milliseconds)
+        let timerInterval = null;
+
+        function startPuzzle() {
+            // Đặt lại trạng thái
+            clearInterval(timerInterval);
+            document.getElementById("result-message").innerText = "";
+            document.getElementById("start-btn").style.display = "none";
+            document.getElementById("puzzle-content").style.display = "block";
+
+            // 1. Tạo phép tính đồng hồ ngẫu nhiên
+            const n1 = Math.floor(Math.random() * 12) + 1;
+            const n2 = Math.floor(Math.random() * 12) + 1;
+            const isAdd = Math.random() > 0.5;
+
+            correctAnswer = isAdd ? (n1 + n2) : Math.abs(n1 - n2);
+            document.getElementById("math-q").innerText = `${n1} ${isAdd ? '+' : '-'} ${n2}`;
+
+            const inputEl = document.getElementById("user-ans");
+            inputEl.value = "";
+            inputEl.focus();
+
+            // 2. Chạy đếm ngược
+            timeLeft = 6000;
+            const timerLine = document.getElementById("timer-line");
+            timerLine.style.width = "100%";
+
+            const startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, 6000 - elapsed);
+                
+                timerLine.style.width = (remaining / 6000 * 100) + "%";
+
+                if (remaining <= 0) {
+                    finishPuzzle(false, "HẾT GIỜ! Boss tung đòn tất sát.");
+                }
+            }, 50);
+        }
+
+        // Xử lý khi nhấn ENTER
+        document.getElementById("user-ans").addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') {
+                const val = parseInt(this.value);
+                if (!isNaN(val)) {
+                    if (val === correctAnswer) {
+                        finishPuzzle(true, "CHÍNH XÁC! Chronos nhận sát thương.");
+                    } else {
+                        finishPuzzle(false, "SAI RỒI! Boss tấn công phản xạ.");
+                    }
+                }
+            }
+        });
+
+        function finishPuzzle(isSuccess, message) {
+            clearInterval(timerInterval);
+            document.getElementById("puzzle-content").style.display = "none";
+            document.getElementById("start-btn").style.display = "inline-block";
+            
+            const msgEl = document.getElementById("result-message");
+            msgEl.innerText = message;
+            msgEl.style.color = isSuccess ? "#00ff66" : "#ff3333";
+        }
+    </script>
+
+</body>
+</html>
