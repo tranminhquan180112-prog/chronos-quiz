@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Fixed Startup</title>
+    <title>Chronos Quiz 3D - You Won & Quotes</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -119,15 +119,15 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
-        /* Màn hình chào ban đầu */
+        /* Nút Start Ban Đầu (Để kích hoạt Audio Policy) */
         #start-overlay {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(3, 3, 8, 0.98);
-            z-index: 9999;
+            background: rgba(3, 3, 8, 0.95);
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -295,13 +295,13 @@
 </head>
 <body>
 
-    <!-- Màn hình chào ban đầu để bật âm thanh -->
+    <!-- Màn hình chào ban đầu để bật âm thanh theo chính sách trình duyệt -->
     <div id="start-overlay">
         <div style="text-align: center; margin-bottom: 20px;">
             <h1 style="color: #00ffff; font-size: 30px; margin: 0; text-shadow: 0 0 15px #00ffff;">CHRONOS QUIZ 3D</h1>
             <p style="color: #ff3366; letter-spacing: 2px; font-weight: bold; margin-top: 5px;">THE BATTLE BRICKS</p>
         </div>
-        <button class="btn-start-game" onclick="startGameApp()">CHẠM ĐỂ BẮT ĐẦU</button>
+        <button class="btn-start-game" onclick="launchGame()">CHẠM ĐỂ BẮT ĐẦU</button>
     </div>
 
     <!-- Nút quay lại Menu khi đang chơi -->
@@ -367,8 +367,8 @@
                         <div class="timer-fill" id="timer-line"></div>
                     </div>
 
-                    <div id="result-msg" style="margin-top:6px; font-size:13px; font-weight:bold; min-height:20px;"></div>
-                    <button class="btn-action" id="victory-back-btn" style="display:none; background:#00ffff; color:#000; margin-top:8px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
+                    <div id="result-msg" style="margin-top:4px; font-size:12px; min-height:16px;"></div>
+                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000; margin-top:6px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
                 </div>
             </div>
         </div>
@@ -381,16 +381,14 @@
     </div>
 
     <script>
+        /* ================= 1. XỬ LÝ ÂM THANH & CÀI ĐẶT (SETTINGS) ================= */
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let isMusicEnabled = true;
         let currentTrack = 'menu';
 
-        function startGameApp() {
+        function launchGame() {
             document.getElementById("start-overlay").style.display = "none";
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            init3D();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             playTrack('menu');
         }
 
@@ -413,13 +411,17 @@
         function playCorrectSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
+            
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
+            
             osc.frequency.setValueAtTime(1046.50, now);
             osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.15);
+            
             gain.gain.setValueAtTime(0.3, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(now);
@@ -429,13 +431,17 @@
         function playWrongSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
+            
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sawtooth';
+            
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+            
             gain.gain.setValueAtTime(0.4, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(now);
@@ -445,14 +451,18 @@
         function playGameOverSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
+            
             const notes = [300, 260, 220, 150];
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
+                
                 osc.frequency.setValueAtTime(freq, now + index * 0.15);
+                
                 gain.gain.setValueAtTime(0.4, now + index * 0.15);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
+                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now + index * 0.15);
@@ -463,8 +473,10 @@
         function playTrack(trackType) {
             currentTrack = trackType;
             if (!isMusicEnabled) return;
+
             const menuIframe = document.getElementById("menu-audio");
             const bossIframe = document.getElementById("boss-audio");
+
             if (trackType === 'menu') {
                 menuIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
@@ -481,15 +493,13 @@
             bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
         }
 
+        /* ================= 2. DỰNG MÔ HÌNH 3D CHRONOS (THREE.JS) ================= */
         let scene, camera, renderer;
         let chronosEye, clockRingMesh;
-        let is3DInitialized = false;
 
         function init3D() {
-            if (is3DInitialized) return;
-            is3DInitialized = true;
-
             const container = document.getElementById('canvas-container');
+            
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x03030a, 0.03);
 
@@ -550,11 +560,14 @@
 
             function animate() {
                 requestAnimationFrame(animate);
+
                 if (clockRingMesh) clockRingMesh.rotation.z -= 0.01;
+
                 if (chronosEye) {
                     chronosEye.position.y = Math.sin(Date.now() * 0.002) * 0.15;
                     chronosEye.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
                 }
+
                 renderer.render(scene, camera);
             }
             animate();
@@ -566,12 +579,17 @@
             });
         }
 
+        /* ================= 3. LOGIC TRẬN ĐẤU & CÂU ĐỐ ================= */
         let currentHp = 42000;
         const maxHp = 42000;
         const damagePerHit = 6000;
+        
         let currentLives = 3;
+        let maxLives = 3;
+        
         let correctAnswer = 0;
         let maxTime = 30000;
+        let timeLeft = 30000;
         let timerInterval = null;
         let isPlaying = false;
         let currentDifficulty = 'normal';
@@ -585,6 +603,7 @@
             nightmare: { time: 15000, count: 4, lives: 1 }
         };
 
+        // Danh sách lời thoại chiến thắng của Chronos theo từng độ khó
         const victoryQuotes = {
             easy: "I was just testing you",
             normal: "Alright, time to get serious",
@@ -622,14 +641,144 @@
             maxTime = difficulties[diff].time;
             currentHp = maxHp;
             currentLives = difficulties[diff].lives;
+            maxLives = currentLives;
 
             document.getElementById("hp-text").innerText = currentHp;
             document.getElementById("hp-bar").style.width = "100%";
             updateLivesDisplay();
             
+            // Chuyển màn hình Menu sang Game Screen
             document.getElementById("menu-screen").classList.remove("active");
             document.getElementById("game-screen").classList.add("active");
             document.getElementById("ingame-back-btn").style.display = "block";
-            document.getElementById("victory-back-btn").style.display = "none";
-            document.getElementById("user-ans").style.display = "inline-block";
-            document.querySelector("button[onclick='submitAnswer()']").style.display = "inline-block";
+            document.getElementById("back-menu-btn").style.display = "none";
+            
+            playTrack('boss');
+            nextPuzzle();
+        }
+
+        function returnToMenu() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            document.getElementById("game-screen").classList.remove("active");
+            document.getElementById("menu-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "none";
+            playTrack('menu');
+        }
+
+        function nextPuzzle() {
+            if (currentHp <= 0 || currentLives <= 0) return;
+            
+            isPlaying = true;
+            document.getElementById("puzzle-wrapper").style.display = "block";
+            document.getElementById("result-msg").innerText = "";
+            
+            let count = difficulties[currentDifficulty].count;
+            let hours = [];
+            
+            for (let i = 0; i < count; i++) {
+                hours.push(Math.floor(Math.random() * 12) + 1);
+            }
+
+            let result = hours[0];
+            let htmlContent = `<div class="clock-emoji">${clockEmojis[hours[0] % 12]}</div>`;
+
+            for (let i = 1; i < count; i++) {
+                result += hours[i];
+                htmlContent += `<span class="math-symbol">+</span>`;
+                htmlContent += `<div class="clock-emoji">${clockEmojis[hours[i] % 12]}</div>`;
+            }
+
+            correctAnswer = ((result - 1) % 12 + 1);
+            if (correctAnswer <= 0) correctAnswer += 12;
+
+            document.getElementById("clocks-container").innerHTML = htmlContent;
+
+            let inputEl = document.getElementById("user-ans");
+            inputEl.value = "";
+            inputEl.focus();
+
+            timeLeft = maxTime;
+            const timerLine = document.getElementById("timer-line");
+            const romanText = document.getElementById("roman-timer-text");
+            
+            timerLine.style.width = "100%";
+            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
+
+            clearInterval(timerInterval);
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = Math.max(0, maxTime - elapsed);
+                
+                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let secondsLeft = Math.ceil(remaining / 1000);
+                romanText.innerText = toRoman(secondsLeft);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
+                }
+            }, 50);
+        }
+
+        function submitAnswer() {
+            if (!isPlaying) return;
+            
+            let val = parseInt(document.getElementById("user-ans").value);
+            if (isNaN(val)) return;
+
+            clearInterval(timerInterval);
+            isPlaying = false;
+
+            if (val === correctAnswer) {
+                playCorrectSound();
+
+                currentHp -= damagePerHit;
+                if (currentHp < 0) currentHp = 0;
+                document.getElementById("hp-text").innerText = currentHp;
+                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
+
+                if (currentHp <= 0) {
+                    document.getElementById("puzzle-wrapper").style.display = "block";
+                    let quote = victoryQuotes[currentDifficulty];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 14px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
+                } else {
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                playGameOverSound();
+                document.getElementById("puzzle-wrapper").style.display = "block";
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
+            } else {
+                playWrongSound();
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+
+        document.getElementById("user-ans").addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') submitAnswer();
+        });
+
+        window.onload = init3D;
+    </script>
+</body>
+</html>
