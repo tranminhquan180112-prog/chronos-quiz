@@ -3,84 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz - Time Trials</title>
+    <title>Chronos Quiz 3D - The Battle Bricks</title>
+    <!-- Nhúng thư viện Three.js để dựng đồ họa 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body {
-            background-color: #030308;
-            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
             font-family: 'Courier New', Courier, monospace;
+            color: #fff;
+            user-select: none;
+        }
+
+        /* Container 3D Canvas */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Giao diện UI đè lên 3D Canvas */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 10px;
-            overflow-x: hidden;
+            pointer-events: none;
         }
 
-        .game-container {
-            background: linear-gradient(135deg, #0d0d1a, #16162f);
-            border: 3px solid #00ffff;
-            border-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 520px;
+        .game-card {
+            background: rgba(10, 10, 20, 0.85);
+            border: 2px solid #00ffff;
+            border-radius: 20px;
+            padding: 20px 25px;
+            width: 90%;
+            max-width: 480px;
             text-align: center;
-            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
-            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            pointer-events: auto;
+            backdrop-filter: blur(8px);
         }
-
-        /* Menu Screen Styling - Cực kỳ bắt mắt & hiện đại */
-        .menu-screen, .game-screen { display: none; }
-        .menu-screen.active, .game-screen.active { display: block; }
 
         .game-title {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 900;
             color: #00ffff;
-            margin: 10px 0 5px 0;
-            text-transform: uppercase;
+            margin: 0;
             letter-spacing: 3px;
-            text-shadow: 0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.4);
+            text-shadow: 0 0 15px #00ffff;
         }
 
         .game-subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: #ff3366;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
             font-weight: bold;
-            text-shadow: 0 0 8px rgba(255, 51, 102, 0.6);
-        }
-
-        .menu-banner {
-            background: rgba(0, 255, 255, 0.05);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
         }
 
         .instructions {
-            background: rgba(10, 10, 20, 0.95);
-            border-left: 5px solid #ffcc00;
-            border-radius: 8px;
-            padding: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-left: 4px solid #ffcc00;
+            padding: 10px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             color: #ddd;
-            line-height: 1.6;
-        }
-
-        .difficulty-header {
-            font-size: 14px;
-            color: #ffcc00;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            border-radius: 6px;
         }
 
         .btn-diff {
@@ -88,40 +89,146 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 13px 18px;
-            margin: 10px 0;
-            font-size: 14px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 13px;
             font-weight: bold;
             border: 2px solid;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-transform: uppercase;
         }
         .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
         .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
         .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
-        .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; box-shadow: 0 0 10px rgba(255, 51, 51, 0.2); }
-        .btn-diff:hover { filter: brightness(1.3); transform: translateY(-2px); box-shadow: 0 0 20px currentColor; }
+        .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
+        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.02); box-shadow: 0 0 15px currentColor; }
 
-        /* Boss Area Visuals */
-        .boss-area {
-            position: relative;
-            width: 100%;
-            height: 170px;
-            background: #e8f4f8;
+        /* Game Screen HUD */
+        .hud-overlay {
+            position: absolute;
+            top: 15px;
+            width: 90%;
+            max-width: 480px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 51, 51, 0.5);
             border-radius: 12px;
+            padding: 10px 15px;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .hp-bar-container {
+            width: 100%;
+            background: #222;
+            height: 10px;
+            border-radius: 5px;
             overflow: hidden;
-            border: 3px solid #ff3333;
-            margin-bottom: 12px;
-            box-shadow: 0 0 25px rgba(255, 51, 51, 0.5);
+            border: 1px solid #ff3333;
+            margin-top: 4px;
+        }
+        .hp-fill { width: 100%; height: 100%; background: #e63232; transition: width 0.3s; }
+
+        .clocks-display {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
         }
 
-        .red-line-left, .red-line-right {
-            position: absolute;
-            top: 0;
-            width: 60px;
-            height: 
+        .clock-emoji {
+            font-size: 40px;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+        }
+
+        .math-symbol { font-size: 22px; font-weight: bold; color: #ffcc00; }
+
+        .roman-timer {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff3333;
+            margin-top: 5px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #ff3333;
+        }
+
+        input[type="number"] {
+            width: 130px;
+            font-size: 22px;
+            text-align: center;
+            padding: 6px;
+            border: 2px solid #00ffff;
+            background: #000;
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+            margin: 6px 0;
+        }
+
+        .timer-bar {
+            width: 100%;
+            background: #222;
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .timer-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.05s linear; }
+
+        .btn-action {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+        .btn-action:hover { background: #00b3b3; transform: scale(1.05); }
+
+        .screens { display: none; }
+        .screens.active { display: block; }
+
+        .audio-iframe { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Canvas 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="ui-layer">
+        <!-- MENU SCREEN -->
+        <div id="menu-screen" class="game-card screens active">
+            <div class="game-title">Chronos Quiz 3D</div>
+            <div class="game-subtitle">THE BATTLE BRICKS</div>
+            
+            <div class="instructions">
+                <b>⏳ QUY TẮC THỜI GIAN:</b><br>
+                • Đọc giờ trực tiếp từ biểu tượng mặt đồng hồ.<br>
+                • Tính tổng/hiệu số giờ (Hệ thống đồng hồ 12h).<br>
+                • Bộ đếm ngược bằng <b>Số La Mã</b>. Hãy giải nhanh trước khi Chronos tiêu diệt bạn!
+            </div>
+
+            <div style="font-size: 12px; color: #ffcc00; font-weight: bold; margin-bottom: 8px;">CHỌN ĐỘ KHÓ:</div>
+            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng hồ)</span> <span>XXXs</span></button>
+            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng hồ)</span> <span>XXs</span></button>
+            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng hồ)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng hồ)</span> <span>XVs</span></button>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="screens" style="width:100%; height:100%; position:relative; display:none;">
+            <!-- HUD Máu Boss ở trên -->
+            <div style="display:flex; justify-content:center; width:100%;">
+                <div class="hud-overlay">
+                    <div style="font-size: 13px; color: #ff3333; font-weight: bold;">CHRONOS 3D (LORD OF TIME)</div>
+                    <div style="font-size: 11px; color: #aaa; margin-top: 2px;">HP: <span id="hp-text">500</span>/500</div>
+                    <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div>
