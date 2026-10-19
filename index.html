@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Full Features & Custom SFX</title>
+    <title>Chronos Quiz 3D - Fixed Menu & Auto Fullscreen</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -16,6 +16,8 @@
             font-family: 'Courier New', Courier, monospace;
             color: #fff;
             user-select: none;
+            width: 100vw;
+            height: 100vh;
         }
 
         #canvas-container {
@@ -27,7 +29,7 @@
             z-index: 1;
         }
 
-        /* Lớp UI đè lên 3D Canvas */
+        /* Lớp UI đè lên 3D Canvas - Căn giữa tuyệt đối cho mọi thiết bị */
         .ui-layer {
             position: absolute;
             top: 0;
@@ -38,81 +40,58 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: none;
-        }
-
-        /* Nút Fullscreen */
-        .fullscreen-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 10;
-            background: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            pointer-events: auto;
-            transition: 0.2s;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-        }
-        .fullscreen-btn:hover {
-            background: #00ffff;
-            color: #000;
-            transform: scale(1.05);
+            padding: 10px;
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.88);
+            background: rgba(10, 10, 20, 0.9);
             border: 2px solid #00ffff;
             border-radius: 20px;
-            padding: 20px 25px;
-            width: 90%;
-            max-width: 480px;
+            padding: 20px;
+            width: 100%;
+            max-width: 460px;
             text-align: center;
             box-shadow: 0 0 35px rgba(0, 255, 255, 0.4);
-            pointer-events: auto;
             backdrop-filter: blur(8px);
+            max-height: 95vh;
+            overflow-y: auto;
         }
 
         .game-title {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 900;
             color: #00ffff;
             margin: 0;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-shadow: 0 0 15px #00ffff;
             text-transform: uppercase;
         }
 
         .game-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: #ff3366;
-            letter-spacing: 4px;
-            margin-bottom: 15px;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
             font-weight: bold;
         }
 
         .instructions {
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(0, 0, 0, 0.7);
             border-left: 4px solid #ffcc00;
-            padding: 10px 12px;
+            padding: 8px 10px;
             text-align: left;
             font-size: 11px;
             color: #ddd;
-            line-height: 1.5;
-            margin-bottom: 15px;
+            line-height: 1.4;
+            margin-bottom: 12px;
             border-radius: 6px;
         }
 
         .difficulty-header {
-            font-size: 13px;
+            font-size: 12px;
             color: #ffcc00;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -122,9 +101,9 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 12px 16px;
-            margin: 8px 0;
-            font-size: 13px;
+            padding: 10px 14px;
+            margin: 6px 0;
+            font-size: 12px;
             font-weight: bold;
             border: 2px solid;
             border-radius: 10px;
@@ -136,27 +115,26 @@
         .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
         .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
-        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.02); box-shadow: 0 0 15px currentColor; }
+        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
         /* HUD Trận đấu */
         .hud-overlay {
             position: absolute;
-            top: 15px;
+            top: 10px;
             width: 90%;
-            max-width: 480px;
-            background: rgba(0, 0, 0, 0.75);
+            max-width: 460px;
+            background: rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(255, 51, 51, 0.5);
             border-radius: 12px;
-            padding: 10px 15px;
+            padding: 8px 12px;
             text-align: center;
-            pointer-events: auto;
         }
 
         .hp-bar-container {
             width: 100%;
             background: #111;
-            height: 12px;
-            border-radius: 6px;
+            height: 10px;
+            border-radius: 5px;
             overflow: hidden;
             border: 1px solid #ff3333;
             margin-top: 4px;
@@ -164,9 +142,9 @@
         .hp-fill { width: 100%; height: 100%; background: #e63232; transition: width 0.3s; }
 
         .lives-display {
-            font-size: 16px;
+            font-size: 15px;
             color: #ff3366;
-            margin-top: 5px;
+            margin-top: 4px;
             font-weight: bold;
         }
 
@@ -176,36 +154,36 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 6px;
-            margin: 10px 0;
+            margin: 8px 0;
         }
 
         .clock-emoji {
-            font-size: 42px;
+            font-size: 38px;
             filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
         }
 
-        .math-symbol { font-size: 22px; font-weight: bold; color: #ffcc00; }
+        .math-symbol { font-size: 20px; font-weight: bold; color: #ffcc00; }
 
         .roman-timer {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             color: #ff3333;
-            margin-top: 5px;
+            margin-top: 4px;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px #ff3333;
+            text-shadow: 0 0 8px #ff3333;
         }
 
         input[type="number"] {
-            width: 130px;
-            font-size: 22px;
+            width: 120px;
+            font-size: 20px;
             text-align: center;
-            padding: 6px;
+            padding: 5px;
             border: 2px solid #00ffff;
             background: #000;
             color: #fff;
             border-radius: 8px;
             outline: none;
-            margin: 6px 0;
+            margin: 5px 0;
         }
 
         .timer-bar {
@@ -213,7 +191,7 @@
             background: #222;
             height: 6px;
             border-radius: 3px;
-            margin-top: 8px;
+            margin-top: 6px;
             overflow: hidden;
         }
         .timer-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.05s linear; }
@@ -222,12 +200,12 @@
             background: #00ffff;
             color: #000;
             border: none;
-            padding: 8px 18px;
-            font-size: 13px;
+            padding: 8px 16px;
+            font-size: 12px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 6px;
+            margin-top: 5px;
             transition: 0.2s;
         }
         .btn-action:hover { background: #00b3b3; transform: scale(1.05); }
@@ -239,9 +217,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Nút Bật / Tắt Fullscreen -->
-    <button class="fullscreen-btn" onclick="toggleFullscreen()">Full Screen ⛶</button>
 
     <!-- Canvas 3D -->
     <div id="canvas-container"></div>
@@ -257,15 +232,15 @@
                 <b>⏳ HƯỚNG DẪN THỬ THÁCH THỜI GIAN:</b><br>
                 • Đọc giờ trực tiếp từ mặt đồng hồ (🕒 = 3h, 🕕 = 6h, 🕛 = 12h...).<br>
                 • <b>Chỉ dùng phép cộng (+)</b> để tính tổng giờ các đồng hồ.<br>
-                • Hệ thống mạng: Easy/Normal (3 mạng), Hard (2 mạng), Nightmare (1 mạng).<br>
-                • Đếm ngược thời gian bằng <b>Số La Mã</b>.
+                • Mạng sống: Easy/Normal (3 mạng), Hard (2 mạng), Nightmare (1 mạng).<br>
+                • Đếm ngược bằng <b>Số La Mã</b>.
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
-            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng hồ - 3 Mạng)</span> <span>XXXs</span></button>
-            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng hồ - 3 Mạng)</span> <span>XXs</span></button>
-            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng hồ - 2 Mạng)</span> <span>XVs</span></button>
-            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng hồ - 1 Mạng)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>XXXs</span></button>
+            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>XXs</span></button>
+            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
         </div>
 
         <!-- GAME SCREEN -->
@@ -273,17 +248,17 @@
             <!-- HUD Máu Boss & Mạng người chơi -->
             <div style="display:flex; justify-content:center; width:100%;">
                 <div class="hud-overlay">
-                    <div style="font-size: 13px; color: #ff3333; font-weight: bold;">CHRONOS (LORD OF TIME)</div>
-                    <div style="font-size: 11px; color: #aaa; margin-top: 2px;">HP: <span id="hp-text">42000</span> / 42000</div>
+                    <div style="font-size: 12px; color: #ff3333; font-weight: bold;">CHRONOS (LORD OF TIME)</div>
+                    <div style="font-size: 10px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
                     <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
                     <div class="lives-display" id="lives-text">❤️❤️❤️</div>
                 </div>
             </div>
 
-            <!-- Bảng Câu đố ở trung tâm -->
-            <div style="position:absolute; bottom: 25px; width:100%; display:flex; justify-content:center; pointer-events:none;">
+            <!-- Bảng Câu đố ở trung tâm bên dưới -->
+            <div style="position:absolute; bottom: 15px; width:100%; display:flex; justify-content:center;">
                 <div class="game-card" id="puzzle-wrapper">
-                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 12px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 11px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
                     
                     <div class="clocks-display" id="clocks-container"></div>
 
@@ -297,387 +272,5 @@
                         <div class="timer-fill" id="timer-line"></div>
                     </div>
 
-                    <div id="result-msg" style="margin-top:5px; font-size:13px; min-height:18px;"></div>
-                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#444; color:#fff; margin-top:8px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- YouTube Music Frame -->
-    <div class="audio-iframe">
-        <iframe id="menu-audio" width="100" height="100" src="https://www.youtube.com/embed/cH_Nk_PPCzQ?enablejsapi=1&loop=1&playlist=cH_Nk_PPCzQ" allow="autoplay"></iframe>
-        <iframe id="boss-audio" width="100" height="100" src="https://www.youtube.com/embed/0V49vqh2sTg?enablejsapi=1&loop=1&playlist=0V49vqh2sTg" allow="autoplay"></iframe>
-    </div>
-
-    <script>
-        /* ================= 1. XỬ LÝ FULLSCREEN & SOUND SFX (WEB AUDIO API) ================= */
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playCorrectSound() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            
-            osc.frequency.setValueAtTime(1046.50, now);
-            osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.15);
-            
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.4);
-        }
-
-        function playWrongSound() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.linearRampToValueAtTime(110, now + 0.35);
-            
-            gain.gain.setValueAtTime(0.4, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.35);
-        }
-
-        // Âm thanh thua cuộc đặc trưng khi hết sạch mạng[span_1](start_span)[span_1](end_span)
-        function playGameOverSound() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-            
-            const notes = [300, 260, 220, 150];
-            notes.forEach((freq, index) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                
-                osc.frequency.setValueAtTime(freq, now + index * 0.15);
-                
-                gain.gain.setValueAtTime(0.4, now + index * 0.15);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + index * 0.15);
-                osc.stop(now + index * 0.15 + 0.2);
-            });
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        /* ================= 2. DỰNG MÔ HÌNH 3D CHRONOS (THREE.JS) ================= */
-        let scene, camera, renderer;
-        let chronosEye, clockRingMesh;
-
-        function init3D() {
-            const container = document.getElementById('canvas-container');
-            
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x03030a, 0.03);
-
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 8);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-
-            const pointLight = new THREE.PointLight(0x00ffff, 2.5, 25);
-            pointLight.position.set(0, 0, 5);
-            scene.add(pointLight);
-
-            const redLight = new THREE.PointLight(0xff0000, 3.5, 20);
-            redLight.position.set(0, 2, 2);
-            scene.add(redLight);
-
-            const eyeGeo = new THREE.SphereGeometry(1.2, 32, 16);
-            eyeGeo.scale(1.8, 0.8, 0.8);
-            const eyeMat = new THREE.MeshPhongMaterial({
-                color: 0xffffff,
-                emissive: 0x00e5ff,
-                emissiveIntensity: 0.9,
-                shininess: 100
-            });
-            chronosEye = new THREE.Mesh(eyeGeo, eyeMat);
-            scene.add(chronosEye);
-
-            const pupilGeo = new THREE.SphereGeometry(0.5, 32, 16);
-            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-            const pupil = new THREE.Mesh(pupilGeo, pupilMat);
-            pupil.position.z = 0.6;
-            chronosEye.add(pupil);
-
-            const ringGeo = new THREE.TorusGeometry(2.5, 0.08, 16, 100);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-            clockRingMesh = new THREE.Mesh(ringGeo, ringMat);
-            clockRingMesh.position.z = -0.5;
-            scene.add(clockRingMesh);
-
-            const pillarGeo = new THREE.BoxGeometry(0.4, 6, 0.4);
-            const pillarMat = new THREE.MeshPhongMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.6 });
-            
-            const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
-            leftPillar.position.set(-4, 0, -1);
-            leftPillar.rotation.z = -0.25;
-            scene.add(leftPillar);
-
-            const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
-            rightPillar.position.set(4, 0, -1);
-            rightPillar.rotation.z = 0.25;
-            scene.add(rightPillar);
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                if (clockRingMesh) clockRingMesh.rotation.z -= 0.01;
-
-                if (chronosEye) {
-                    chronosEye.position.y = Math.sin(Date.now() * 0.002) * 0.15;
-                    chronosEye.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
-                }
-
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
-
-        /* ================= 3. LOGIC TRẬN ĐẤU & CÂU ĐỐ ================= */
-        let currentHp = 42000;
-        const maxHp = 42000;
-        const damagePerHit = 6000;
-        
-        let currentLives = 3;
-        let maxLives = 3;
-        
-        let correctAnswer = 0;
-        let maxTime = 30000;
-        let timeLeft = 30000;
-        let timerInterval = null;
-        let isPlaying = false;
-        let currentDifficulty = 'normal';
-
-        const clockEmojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
-
-        const difficulties = {
-            easy: { time: 30000, count: 1, lives: 3 },
-            normal: { time: 20000, count: 2, lives: 3 },
-            hard: { time: 15000, count: 3, lives: 2 },
-            nightmare: { time: 15000, count: 4, lives: 1 }
-        };
-
-        function toRoman(num) {
-            if (num <= 0) return "0";
-            const romanMap = [
-                { val: 40, str: "XL" }, { val: 10, str: "X" },
-                { val: 9, str: "IX" }, { val: 5, str: "V" },
-                { val: 4, str: "IV" }, { val: 1, str: "I" }
-            ];
-            let res = "";
-            for (let i = 0; i < romanMap.length; i++) {
-                while (num >= romanMap[i].val) {
-                    res += romanMap[i].str;
-                    num -= romanMap[i].val;
-                }
-            }
-            return res;
-        }
-
-        function updateLivesDisplay() {
-            let hearts = "";
-            for (let i = 0; i < currentLives; i++) {
-                hearts += "❤️";
-            }
-            document.getElementById("lives-text").innerText = hearts;
-        }
-
-        function playTrack(trackType) {
-            const menuIframe = document.getElementById("menu-audio");
-            const bossIframe = document.getElementById("boss-audio");
-
-            if (trackType === 'menu') {
-                menuIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            } else if (trackType === 'boss') {
-                menuIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                bossIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            }
-        }
-
-        document.body.addEventListener('click', function initAudio() {
-            if (!isPlaying) playTrack('menu');
-        }, { once: true });
-
-        function startGame(diff) {
-            currentDifficulty = diff;
-            maxTime = difficulties[diff].time;
-            currentHp = maxHp;
-            currentLives = difficulties[diff].lives;
-            maxLives = currentLives;
-
-            document.getElementById("hp-text").innerText = currentHp;
-            document.getElementById("hp-bar").style.width = "100%";
-            updateLivesDisplay();
-            
-            document.getElementById("menu-screen").classList.remove("active");
-            document.getElementById("game-screen").style.display = "block";
-            document.getElementById("back-menu-btn").style.display = "none";
-            
-            playTrack('boss');
-            nextPuzzle();
-        }
-
-        function returnToMenu() {
-            clearInterval(timerInterval);
-            document.getElementById("game-screen").style.display = "none";
-            document.getElementById("menu-screen").classList.add("active");
-            playTrack('menu');
-        }
-
-        function nextPuzzle() {
-            if (currentHp <= 0 || currentLives <= 0) return;
-            
-            isPlaying = true;
-            document.getElementById("puzzle-wrapper").style.display = "block";
-            document.getElementById("result-msg").innerText = "";
-            
-            let count = difficulties[currentDifficulty].count;
-            let hours = [];
-            
-            for (let i = 0; i < count; i++) {
-                hours.push(Math.floor(Math.random() * 12) + 1);
-            }
-
-            // Chỉ dùng phép cộng (+) cho tất cả các đồng hồ
-            let result = hours[0];
-            let htmlContent = `<div class="clock-emoji">${clockEmojis[hours[0] % 12]}</div>`;
-
-            for (let i = 1; i < count; i++) {
-                result += hours[i];
-                htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<div class="clock-emoji">${clockEmojis[hours[i] % 12]}</div>`;
-            }
-
-            correctAnswer = ((result - 1) % 12 + 1);
-            if (correctAnswer <= 0) correctAnswer += 12;
-
-            document.getElementById("clocks-container").innerHTML = htmlContent;
-
-            let inputEl = document.getElementById("user-ans");
-            inputEl.value = "";
-            inputEl.focus();
-
-            timeLeft = maxTime;
-            const timerLine = document.getElementById("timer-line");
-            const romanText = document.getElementById("roman-timer-text");
-            
-            timerLine.style.width = "100%";
-            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
-
-            clearInterval(timerInterval);
-            let startTime = Date.now();
-            
-            timerInterval = setInterval(() => {
-                let elapsed = Date.now() - startTime;
-                let remaining = Math.max(0, maxTime - elapsed);
-                
-                timerLine.style.width = (remaining / maxTime * 100) + "%";
-                let secondsLeft = Math.ceil(remaining / 1000);
-                romanText.innerText = toRoman(secondsLeft);
-
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
-                }
-            }, 50);
-        }
-
-        function submitAnswer() {
-            if (!isPlaying) return;
-            
-            let val = parseInt(document.getElementById("user-ans").value);
-            if (isNaN(val)) return;
-
-            clearInterval(timerInterval);
-            isPlaying = false;
-
-            if (val === correctAnswer) {
-                playCorrectSound();
-
-                currentHp -= damagePerHit;
-                if (currentHp < 0) currentHp = 0;
-                document.getElementById("hp-text").innerText = currentHp;
-                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
-
-                if (currentHp <= 0) {
-                    document.getElementById("puzzle-wrapper").style.display = "none";
-                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHIẾN THẮNG! Chronos đã bị tiêu diệt hoàn toàn.</span>";
-                    document.getElementById("back-menu-btn").style.display = "inline-block";
-                } else {
-                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
-                    setTimeout(nextPuzzle, 1500);
-                }
-            } else {
-                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
-            }
-        }
-
-        function handleFailure(msg) {
-            isPlaying = false;
-
-            currentLives--;
-            updateLivesDisplay();
-
-            if (currentLives <= 0) {
-                playGameOverSound(); // Phát âm thanh thua cuộc[span_2](start_span)[span_2](end_span)
-                document.getElementById("puzzle-wrapper").style.display = "none";
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
-                document.getElementById("back-menu-btn").style.display = "inline-block";
-            } else {
-                playWrongSound(); // Phát âm thanh sai thông thường
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
-                setTimeout(nextPuzzle, 2000);
-            }
-        }
-
-        document.getElementById("user-ans").addEventListener("keypress", function(e) {
-            if (e.key === 'Enter') submitAnswer();
-        });
-
-        window.onload = init3D;
-    </script>
-</body>
-</html>
+                    <div id="result-msg" style="margin-top:4px; font-size:12px; min-height:16px;"></div>
+                    <button class="btn-action" id="back-menu-
