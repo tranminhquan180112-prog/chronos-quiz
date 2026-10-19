@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Settings & Back to Menu</title>
+    <title>Chronos Quiz 3D - Fixed Audio & Menu</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -45,7 +45,7 @@
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.92);
+            background: rgba(10, 10, 20, 0.94);
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 20px;
@@ -119,6 +119,36 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
+        /* Nút Start Ban Đầu (Để kích hoạt Audio Policy) */
+        #start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 3, 8, 0.95);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-start-game {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 25px #00ffff;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-start-game:hover { background: #00b3b3; transform: scale(1.05); }
+
         /* Cài đặt âm thanh ở Menu */
         .settings-box {
             margin-top: 12px;
@@ -143,7 +173,7 @@
         }
         .btn-setting:hover { background: #00ffff; color: #000; }
 
-        /* Nút Quay lại Menu khi đang chơi */
+        /* Nút quay lại Menu khi đang chơi */
         .back-ingame-btn {
             position: absolute;
             top: 15px;
@@ -159,6 +189,7 @@
             cursor: pointer;
             pointer-events: auto;
             transition: 0.2s;
+            display: none;
         }
         .back-ingame-btn:hover { background: #ff3333; color: #fff; }
 
@@ -264,8 +295,17 @@
 </head>
 <body>
 
+    <!-- Màn hình chào ban đầu để bật âm thanh theo chính sách trình duyệt -->
+    <div id="start-overlay">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #00ffff; font-size: 30px; margin: 0; text-shadow: 0 0 15px #00ffff;">CHRONOS QUIZ 3D</h1>
+            <p style="color: #ff3366; letter-spacing: 2px; font-weight: bold; margin-top: 5px;">THE BATTLE BRICKS</p>
+        </div>
+        <button class="btn-start-game" onclick="launchGame()">CHẠM ĐỂ BẮT ĐẦU</button>
+    </div>
+
     <!-- Nút quay lại Menu khi đang chơi -->
-    <button class="back-ingame-btn" id="ingame-back-btn" style="display:none;" onclick="returnToMenu()">⬅ MENU</button>
+    <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
     <!-- Canvas 3D -->
     <div id="canvas-container"></div>
@@ -345,6 +385,12 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let isMusicEnabled = true;
         let currentTrack = 'menu';
+
+        function launchGame() {
+            document.getElementById("start-overlay").style.display = "none";
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            playTrack('menu');
+        }
 
         function toggleMusic() {
             isMusicEnabled = !isMusicEnabled;
@@ -446,11 +492,6 @@
             menuIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
             bossIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
         }
-
-        // Tự động kích hoạt nhạc ngay khi người chơi bấm vào màn hình lần đầu tiên
-        document.body.addEventListener('click', function initAudio() {
-            playTrack('menu');
-        }, { once: true });
 
         /* ================= 2. DỰNG MÔ HÌNH 3D CHRONOS (THREE.JS) ================= */
         let scene, camera, renderer;
@@ -711,13 +752,13 @@
             updateLivesDisplay();
 
             if (currentLives <= 0) {
-                playGameOverSound(); // Phát âm thanh thua cuộc[span_0](start_span)[span_0](end_span)
+                playGameOverSound(); // Phát âm thanh thua cuộc
                 document.getElementById("puzzle-wrapper").style.display = "none";
-                document.getElementById("result-msg").innerHTML = "<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: " + correctAnswer + "h)</span>";
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
                 document.getElementById("back-menu-btn").style.display = "inline-block";
             } else {
                 playWrongSound();
-                document.getElementById("result-msg").innerHTML = "<span style='color: #ff3333;'>" + msg + " (Đáp án đúng: " + correctAnswer + "h)</span>";
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
                 setTimeout(nextPuzzle, 2000);
             }
         }
