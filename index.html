@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Final Version</title>
+    <title>Chronos Quiz 3D - Battle Bricks</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -29,7 +29,7 @@
             z-index: 1;
         }
 
-        /* Lớp UI đè lên 3D Canvas - Căn giữa tuyệt đối cho mọi thiết bị */
+        /* Lớp UI đè lên 3D Canvas */
         .ui-layer {
             position: absolute;
             top: 0;
@@ -41,10 +41,11 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
+            pointer-events: none;
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.9);
+            background: rgba(10, 10, 20, 0.92);
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 20px;
@@ -55,6 +56,7 @@
             backdrop-filter: blur(8px);
             max-height: 95vh;
             overflow-y: auto;
+            pointer-events: auto;
         }
 
         .game-title {
@@ -123,11 +125,12 @@
             top: 10px;
             width: 90%;
             max-width: 460px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             border: 1px solid rgba(255, 51, 51, 0.5);
             border-radius: 12px;
             padding: 8px 12px;
             text-align: center;
+            pointer-events: auto;
         }
 
         .hp-bar-container {
@@ -210,8 +213,9 @@
         }
         .btn-action:hover { background: #00b3b3; transform: scale(1.05); }
 
-        .screens { display: none; }
-        .screens.active { display: block; }
+        /* Quản lý hiển thị màn hình */
+        .screen { display: none; }
+        .screen.active { display: block; }
 
         .audio-iframe { display: none; }
     </style>
@@ -224,7 +228,7 @@
     <!-- UI Overlay Layer -->
     <div class="ui-layer">
         <!-- MENU SCREEN -->
-        <div id="menu-screen" class="game-card screens active">
+        <div id="menu-screen" class="game-card screen active">
             <div class="game-title">Chronos Quiz</div>
             <div class="game-subtitle">THE BATTLE BRICKS 3D</div>
             
@@ -244,7 +248,7 @@
         </div>
 
         <!-- GAME SCREEN -->
-        <div id="game-screen" class="screens" style="width:100%; height:100%; position:relative; display:none;">
+        <div id="game-screen" class="screen" style="width:100%; height:100%; position:relative;">
             <!-- HUD Máu Boss & Mạng người chơi -->
             <div style="display:flex; justify-content:center; width:100%;">
                 <div class="hud-overlay">
@@ -514,8 +518,9 @@
             document.getElementById("hp-bar").style.width = "100%";
             updateLivesDisplay();
             
+            // Chuyển màn hình Menu sang Game Screen
             document.getElementById("menu-screen").classList.remove("active");
-            document.getElementById("game-screen").style.display = "block";
+            document.getElementById("game-screen").classList.add("active");
             document.getElementById("back-menu-btn").style.display = "none";
             
             playTrack('boss');
@@ -524,7 +529,7 @@
 
         function returnToMenu() {
             clearInterval(timerInterval);
-            document.getElementById("game-screen").style.display = "none";
+            document.getElementById("game-screen").classList.remove("active");
             document.getElementById("menu-screen").classList.add("active");
             playTrack('menu');
         }
@@ -624,7 +629,7 @@
             updateLivesDisplay();
 
             if (currentLives <= 0) {
-                playGameOverSound(); // Phát âm thanh thua cuộc[span_1](start_span)[span_1](end_span)
+                playGameOverSound(); // Phát âm thanh thua cuộc[span_0](start_span)[span_0](end_span)
                 document.getElementById("puzzle-wrapper").style.display = "none";
                 document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
                 document.getElementById("back-menu-btn").style.display = "inline-block";
