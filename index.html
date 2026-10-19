@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Boss Victory Quotes</title>
+    <title>Chronos Quiz 3D - Final Complete Version</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -119,7 +119,7 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
-        /* Màn hình chào ban đầu để bật âm thanh */
+        /* Màn hình chào ban đầu */
         #start-overlay {
             position: absolute;
             top: 0;
@@ -368,7 +368,7 @@
                     </div>
 
                     <div id="result-msg" style="margin-top:4px; font-size:12px; min-height:16px;"></div>
-                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#444; color:#fff; margin-top:6px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
+                    <button class="btn-action" id="victory-back-btn" style="display:none; background:#00ffff; color:#000; margin-top:6px;" onclick="returnToMenu()">QUAY LẠI MENU</button>
                 </div>
             </div>
         </div>
@@ -603,7 +603,7 @@
             nightmare: { time: 15000, count: 4, lives: 1 }
         };
 
-        // Danh sách câu thoại chiến thắng của Chronos theo từng độ khó
+        // Danh sách lời thoại chiến thắng của Chronos theo từng độ khó
         const victoryQuotes = {
             easy: "I was just testing you",
             normal: "Right, it's time to lock in",
@@ -650,7 +650,7 @@
             document.getElementById("menu-screen").classList.remove("active");
             document.getElementById("game-screen").classList.add("active");
             document.getElementById("ingame-back-btn").style.display = "block";
-            document.getElementById("back-menu-btn").style.display = "none";
+            document.getElementById("victory-back-btn").style.display = "none";
             
             playTrack('boss');
             nextPuzzle();
@@ -740,10 +740,11 @@
                 document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
 
                 if (currentHp <= 0) {
-                    document.getElementById("puzzle-wrapper").style.display = "none";
+                    document.getElementById("puzzle-wrapper").style.display = "block";
                     let quote = victoryQuotes[currentDifficulty];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>CHIẾN THẮNG!<br>"${quote}"</span>`;
-                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 13px; font-weight: bold;'>CHIẾN THẮNG!<br>"${quote}"</span>`;
+                    document.getElementById("victory-back-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
                 } else {
                     document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
                     setTimeout(nextPuzzle, 1500);
@@ -761,9 +762,10 @@
 
             if (currentLives <= 0) {
                 playGameOverSound();
-                document.getElementById("puzzle-wrapper").style.display = "none";
+                document.getElementById("puzzle-wrapper").style.display = "block";
                 document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
-                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("victory-back-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
             } else {
                 playWrongSound();
                 document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
