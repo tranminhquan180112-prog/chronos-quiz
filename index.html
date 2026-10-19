@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Working Victory Quotes</title>
+    <title>Chronos Quiz 3D - Fixed Start Button</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -126,8 +126,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(3, 3, 8, 0.95);
-            z-index: 10;
+            background: rgba(3, 3, 8, 0.98);
+            z-index: 100;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -301,7 +301,7 @@
             <h1 style="color: #00ffff; font-size: 30px; margin: 0; text-shadow: 0 0 15px #00ffff;">CHRONOS QUIZ 3D</h1>
             <p style="color: #ff3366; letter-spacing: 2px; font-weight: bold; margin-top: 5px;">THE BATTLE BRICKS</p>
         </div>
-        <button class="btn-start-game" onclick="launchGame()">CHẠM ĐỂ BẮT ĐẦU</button>
+        <button class="btn-start-game" id="start-btn">CHẠM ĐỂ BẮT ĐẦU</button>
     </div>
 
     <!-- Nút quay lại Menu khi đang chơi -->
@@ -385,11 +385,13 @@
         let isMusicEnabled = true;
         let currentTrack = 'menu';
 
-        function launchGame() {
+        document.getElementById("start-btn").addEventListener("click", function() {
             document.getElementById("start-overlay").style.display = "none";
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             playTrack('menu');
-        }
+        });
 
         function toggleMusic() {
             isMusicEnabled = !isMusicEnabled;
@@ -445,20 +447,4 @@
             const notes = [300, 260, 220, 150];
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now + index * 0.15);
-                gain.gain.setValueAtTime(0.4, now + index * 0.15);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + index * 0.15);
-                osc.stop(now + index * 0.15 + 0.2);
-            });
-        }
-
-        function playTrack(trackType) {
-            currentTrack = trackType;
-            if (!isMusicEnabled) return;
-            const menuIframe = document.getElementById("menu-audio");
-            const
+                const gain = audioCtx.
