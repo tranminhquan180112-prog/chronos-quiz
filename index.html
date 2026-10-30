@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - God of Time</title>
+    <title>Chronos Quiz 3D - Standalone</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -278,7 +278,6 @@
 
         .screen { display: none; }
         .screen.active { display: block; }
-        .audio-iframe { display: none; }
     </style>
 </head>
 <body>
@@ -306,8 +305,8 @@
             <button class="btn-diff btn-nightmare" data-diff="nightmare"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
 
             <div class="settings-box">
-                <span>🎵 Nhạc nền:</span>
-                <button class="btn-setting" id="music-toggle-btn">BẬT</button>
+                <span>🔊 Hiệu ứng âm thanh:</span>
+                <button class="btn-setting" id="sound-toggle-btn">BẬT</button>
             </div>
         </div>
 
@@ -323,4 +322,157 @@
             </div>
 
             <div style="position:absolute; bottom: 15px; width:100%; display:flex; justify-content:center;">
-                <div class="game-card" id="puzzle-wrapper
+                <div class="game-card" id="puzzle-wrapper">
+                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 11px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+                    
+                    <div class="clocks-display" id="clocks-container"></div>
+                    <div class="options-grid" id="options-container"></div>
+                    
+                    <div class="roman-timer" id="roman-timer-text">XXX</div>
+
+                    <div class="timer-bar" id="timer-bar-box">
+                        <div class="timer-fill" id="timer-line"></div>
+                    </div>
+
+                    <div id="result-msg" style="margin-top:6px; font-size:13px; min-height:18px;"></div>
+                    <button class="btn-action" id="back-menu-btn" style="display:none;">QUAY LẠI MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isSoundEnabled = true;
+
+        let currentHp = 42000;
+        const maxHp = 42000;
+        const damagePerHit = 6000;
+        let currentLives = 3;
+        let correctAnswer = 0;
+        let maxTime = 30000;
+        let timerInterval = null;
+        let isPlaying = false;
+        let currentDifficulty = 'normal';
+
+        const difficulties = {
+            easy: { time: 30000, count: 1, lives: 3 },
+            normal: { time: 20000, count: 2, lives: 3 },
+            hard: { time: 15000, count: 3, lives: 2 },
+            nightmare: { time: 15000, count: 4, lives: 1 }
+        };
+
+        const victoryQuotes = {
+            easy: "ただ試していただけさ",
+            normal: "さあ、本気を出そうか",
+            hard: "何かおかしいぞ…",
+            nightmare: "馬鹿な…どうやってやり遂げたんだ！？"
+        };
+
+        function toRoman(num) {
+            if (num <= 0) return "0";
+            const romanMap = [
+                { val: 40, str: "XL" }, { val: 10, str: "X" },
+                { val: 9, str: "IX" }, { val: 5, str: "V" },
+                { val: 4, str: "IV" }, { val: 1, str: "I" }
+            ];
+            let res = "";
+            for (let i = 0; i < romanMap.length; i++) {
+                while (num >= romanMap[i].val) {
+                    res += romanMap[i].str;
+                    num -= romanMap[i].val;
+                }
+            }
+            return res;
+        }
+
+        // Vẽ mặt đồng hồ vạch (không có chữ số, chỉ có vạch & kim giờ ngắn màu đỏ)
+        function drawClockToCanvas(canvasId, hour) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const radius = width / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.beginPath();
+            ctx.arc(radius, radius, radius - 4, 0, 2 * Math.PI);
+            ctx.fillStyle = "#111122";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#00ffff";
+            ctx.stroke();
+
+            // 12 Vạch chia giờ
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30 - 90) * (Math.PI / 180);
+                const innerRadius = radius - 12;
+                const outerRadius = radius - 6;
+                
+                const x1 = radius + Math.cos(angle) * innerRadius;
+                const y1 = radius + Math.sin(angle) * innerRadius;
+                const x2 = radius + Math.cos(angle) * outerRadius;
+                const y2 = radius + Math.sin(angle) * outerRadius;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = (i % 3 === 0) ? 3.5 : 1.5;
+                ctx.strokeStyle = (i % 3 === 0) ? "#00ffff" : "#8888aa";
+                ctx.stroke();
+            }
+
+            // Kim giờ màu đỏ (kim ngắn)
+            const hourAngle = ((hour % 12) * 30 - 90) * (Math.PI / 180);
+            const handLength = radius * 0.55;
+            
+            ctx.beginPath();
+            ctx.moveTo(radius, radius);
+            ctx.lineTo(radius + Math.cos(hourAngle) * handLength, radius + Math.sin(hourAngle) * handLength);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#ff3366";
+            ctx.lineCap = "round";
+            ctx.stroke();
+
+            // Tâm đồng hồ
+            ctx.beginPath();
+            ctx.arc(radius, radius, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = "#ffcc00";
+            ctx.fill();
+        }
+
+        // Khởi tạo nền Canvas 2D mượt mà
+        function initBackgroundAnimation() {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            let angle = 0;
+            function render() {
+                ctx.fillStyle = "rgba(3, 3, 10, 0.25)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                angle += 0.005;
+
+                // Vòng xoay Chronos
+                ctx.save();
+                ctx.translate(cx, cy - 40);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.arc(0, 0, 110, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(0, 255, 255, 0.25)";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 15]);
+                ctx
