@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Direct Entry</title>
-    <!-- Thư viện Three.js dựng đồ họa 3D -->
+    <title>Chronos Quiz 3D - God of Time</title>
+    <!-- Thư viện Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -29,7 +29,6 @@
             z-index: 1;
         }
 
-        /* Lớp UI đè lên 3D Canvas */
         .ui-layer {
             position: absolute;
             top: 0;
@@ -45,7 +44,7 @@
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.94);
+            background: rgba(10, 10, 20, 0.95);
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 20px;
@@ -119,31 +118,6 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
-        /* Cài đặt Âm thanh ở Menu */
-        .settings-box {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #00ffff;
-        }
-
-        .btn-setting {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            color: #00ffff;
-            padding: 5px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        .btn-setting:hover { background: #00ffff; color: #000; }
-
-        /* Nút quay lại Menu khi đang chơi */
         .back-ingame-btn {
             position: absolute;
             top: 15px;
@@ -163,7 +137,6 @@
         }
         .back-ingame-btn:hover { background: #ff3333; color: #fff; }
 
-        /* HUD Trận đấu */
         .hud-overlay {
             position: absolute;
             top: 10px;
@@ -220,7 +193,6 @@
             text-shadow: 0 0 8px #ff3333;
         }
 
-        /* Khung lựa chọn trắc nghiệm */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -276,13 +248,10 @@
 </head>
 <body>
 
-    <!-- Nút quay lại Menu khi đang chơi -->
     <button class="back-ingame-btn" id="ingame-back-btn">⬅ MENU</button>
 
-    <!-- Canvas 3D -->
     <div id="canvas-container"></div>
 
-    <!-- UI Overlay Layer -->
     <div class="ui-layer">
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="game-card screen active">
@@ -299,17 +268,10 @@
             <button class="btn-diff btn-normal" data-diff="normal"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>XXs</span></button>
             <button class="btn-diff btn-hard" data-diff="hard"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>XVs</span></button>
             <button class="btn-diff btn-nightmare" data-diff="nightmare"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
-
-            <!-- Phần Cài đặt Âm thanh -->
-            <div class="settings-box">
-                <span>🎵 Âm thanh:</span>
-                <button class="btn-setting" id="music-toggle-btn">BẬT</button>
-            </div>
         </div>
 
         <!-- GAME SCREEN -->
         <div id="game-screen" class="screen" style="width:100%; height:100%; position:relative;">
-            <!-- HUD Máu Boss & Mạng người chơi -->
             <div style="display:flex; justify-content:center; width:100%;">
                 <div class="hud-overlay">
                     <div style="font-size: 12px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
@@ -319,14 +281,12 @@
                 </div>
             </div>
 
-            <!-- Bảng Câu đố ở trung tâm -->
             <div style="position:absolute; bottom: 15px; width:100%; display:flex; justify-content:center;">
                 <div class="game-card" id="puzzle-wrapper">
                     <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 11px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
                     
                     <div class="clocks-display" id="clocks-container"></div>
 
-                    <!-- Lựa chọn Trắc nghiệm -->
                     <div class="options-grid" id="options-container"></div>
                     
                     <div class="roman-timer" id="roman-timer-text">XXX</div>
@@ -344,8 +304,6 @@
 
     <script>
         let audioCtx = null;
-        let isSoundEnabled = true;
-
         let scene, camera, renderer;
         let chronosEye, clockRingMesh;
 
@@ -471,8 +429,7 @@
         }
 
         function playCorrectSound() {
-            if (!isSoundEnabled || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -488,8 +445,7 @@
         }
 
         function playWrongSound() {
-            if (!isSoundEnabled || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -505,8 +461,7 @@
         }
 
         function playGameOverSound() {
-            if (!isSoundEnabled || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
             const notes = [300, 260, 220, 150];
             notes.forEach((freq, index) => {
@@ -521,20 +476,6 @@
                 osc.start(now + index * 0.15);
                 osc.stop(now + index * 0.15 + 0.2);
             });
-        }
-
-        function toggleSound() {
-            isSoundEnabled = !isSoundEnabled;
-            const btn = document.getElementById("music-toggle-btn");
-            if (isSoundEnabled) {
-                btn.innerText = "BẬT";
-                btn.style.borderColor = "#00ffff";
-                btn.style.color = "#00ffff";
-            } else {
-                btn.innerText = "TẮT";
-                btn.style.borderColor = "#ff3333";
-                btn.style.color = "#ff3333";
-            }
         }
 
         function updateLivesDisplay() {
@@ -693,7 +634,6 @@
             }
         }
 
-        // Tự động khởi tạo ngay khi tải trang xong
         document.addEventListener("DOMContentLoaded", () => {
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -710,7 +650,6 @@
                 });
             });
 
-            document.getElementById("music-toggle-btn").addEventListener("click", toggleSound);
             document.getElementById("ingame-back-btn").addEventListener("click", returnToMenu);
             document.getElementById("back-menu-btn").addEventListener("click", returnToMenu);
         });
