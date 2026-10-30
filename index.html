@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Quiz 3D - Standalone Audio</title>
+    <title>Chronos Quiz 3D - Direct Entry</title>
     <!-- Thư viện Three.js dựng đồ họa 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -119,38 +119,7 @@
         .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
         .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); box-shadow: 0 0 12px currentColor; }
 
-        /* Màn hình chào ban đầu */
-        #start-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(3, 3, 8, 0.98);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-        }
-
-        .btn-start-game {
-            background: #00ffff;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 0 25px #00ffff;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-        .btn-start-game:hover { background: #00b3b3; transform: scale(1.05); }
-
-        /* Cài đặt âm thanh ở Menu */
+        /* Cài đặt Âm thanh ở Menu */
         .settings-box {
             margin-top: 12px;
             padding-top: 10px;
@@ -251,7 +220,7 @@
             text-shadow: 0 0 8px #ff3333;
         }
 
-        /* Khung chứa các nút lựa chọn trắc nghiệm */
+        /* Khung lựa chọn trắc nghiệm */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -307,15 +276,6 @@
 </head>
 <body>
 
-    <!-- Màn hình chào ban đầu -->
-    <div id="start-overlay">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #00ffff; font-size: 30px; margin: 0; text-shadow: 0 0 15px #00ffff;">CHRONOS QUIZ 3D</h1>
-            <p style="color: #ff3366; letter-spacing: 2px; font-weight: bold; margin-top: 5px;">THE BATTLE BRICKS</p>
-        </div>
-        <button class="btn-start-game" id="start-game-btn">CHẠM ĐỂ BẮT ĐẦU</button>
-    </div>
-
     <!-- Nút quay lại Menu khi đang chơi -->
     <button class="back-ingame-btn" id="ingame-back-btn">⬅ MENU</button>
 
@@ -362,4 +322,398 @@
             <!-- Bảng Câu đố ở trung tâm -->
             <div style="position:absolute; bottom: 15px; width:100%; display:flex; justify-content:center;">
                 <div class="game-card" id="puzzle-wrapper">
-                    <p style="margin: 0; color: #00ffff
+                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 11px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+                    
+                    <div class="clocks-display" id="clocks-container"></div>
+
+                    <!-- Lựa chọn Trắc nghiệm -->
+                    <div class="options-grid" id="options-container"></div>
+                    
+                    <div class="roman-timer" id="roman-timer-text">XXX</div>
+
+                    <div class="timer-bar" id="timer-bar-box">
+                        <div class="timer-fill" id="timer-line"></div>
+                    </div>
+
+                    <div id="result-msg" style="margin-top:4px; font-size:12px; min-height:16px;"></div>
+                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000; margin-top:6px;">QUAY LẠI MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isSoundEnabled = true;
+
+        let scene, camera, renderer;
+        let chronosEye, clockRingMesh;
+
+        let currentHp = 42000;
+        const maxHp = 42000;
+        const damagePerHit = 6000;
+        let currentLives = 3;
+        let correctAnswer = 0;
+        let maxTime = 30000;
+        let timerInterval = null;
+        let isPlaying = false;
+        let currentDifficulty = 'normal';
+
+        const clockEmojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"];
+
+        const difficulties = {
+            easy: { time: 30000, count: 1, lives: 3 },
+            normal: { time: 20000, count: 2, lives: 3 },
+            hard: { time: 15000, count: 3, lives: 2 },
+            nightmare: { time: 15000, count: 4, lives: 1 }
+        };
+
+        const victoryQuotes = {
+            easy: "ただ試していただけさ",
+            normal: "さあ、本気を出そうか",
+            hard: "何かおかしいぞ…",
+            nightmare: "馬鹿な…どうやってやり遂げたんだ！？"
+        };
+
+        function toRoman(num) {
+            if (num <= 0) return "0";
+            const romanMap = [
+                { val: 40, str: "XL" }, { val: 10, str: "X" },
+                { val: 9, str: "IX" }, { val: 5, str: "V" },
+                { val: 4, str: "IV" }, { val: 1, str: "I" }
+            ];
+            let res = "";
+            for (let i = 0; i < romanMap.length; i++) {
+                while (num >= romanMap[i].val) {
+                    res += romanMap[i].str;
+                    num -= romanMap[i].val;
+                }
+            }
+            return res;
+        }
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x03030a, 0.03);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 8);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 2.5, 25);
+            pointLight.position.set(0, 0, 5);
+            scene.add(pointLight);
+
+            const redLight = new THREE.PointLight(0xff0000, 3.5, 20);
+            redLight.position.set(0, 2, 2);
+            scene.add(redLight);
+
+            const eyeGeo = new THREE.SphereGeometry(1.2, 32, 16);
+            eyeGeo.scale(1.8, 0.8, 0.8);
+            const eyeMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                emissive: 0x00e5ff,
+                emissiveIntensity: 0.9,
+                shininess: 100
+            });
+            chronosEye = new THREE.Mesh(eyeGeo, eyeMat);
+            scene.add(chronosEye);
+
+            const pupilGeo = new THREE.SphereGeometry(0.5, 32, 16);
+            const pupilMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+            const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+            pupil.position.z = 0.6;
+            chronosEye.add(pupil);
+
+            const ringGeo = new THREE.TorusGeometry(2.5, 0.08, 16, 100);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+            clockRingMesh = new THREE.Mesh(ringGeo, ringMat);
+            clockRingMesh.position.z = -0.5;
+            scene.add(clockRingMesh);
+
+            const pillarGeo = new THREE.BoxGeometry(0.4, 6, 0.4);
+            const pillarMat = new THREE.MeshPhongMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.6 });
+            
+            const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            leftPillar.position.set(-4, 0, -1);
+            leftPillar.rotation.z = -0.25;
+            scene.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+            rightPillar.position.set(4, 0, -1);
+            rightPillar.rotation.z = 0.25;
+            scene.add(rightPillar);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (clockRingMesh) clockRingMesh.rotation.z -= 0.01;
+                if (chronosEye) {
+                    chronosEye.position.y = Math.sin(Date.now() * 0.002) * 0.15;
+                    chronosEye.rotation.y = Math.sin(Date.now() * 0.001) * 0.1;
+                }
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function playCorrectSound() {
+            if (!isSoundEnabled || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1046.50, now);
+            osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.15);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        function playWrongSound() {
+            if (!isSoundEnabled || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+        }
+
+        function playGameOverSound() {
+            if (!isSoundEnabled || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const notes = [300, 260, 220, 150];
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + index * 0.15);
+                gain.gain.setValueAtTime(0.4, now + index * 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + index * 0.15);
+                osc.stop(now + index * 0.15 + 0.2);
+            });
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const btn = document.getElementById("music-toggle-btn");
+            if (isSoundEnabled) {
+                btn.innerText = "BẬT";
+                btn.style.borderColor = "#00ffff";
+                btn.style.color = "#00ffff";
+            } else {
+                btn.innerText = "TẮT";
+                btn.style.borderColor = "#ff3333";
+                btn.style.color = "#ff3333";
+            }
+        }
+
+        function updateLivesDisplay() {
+            let hearts = "";
+            for (let i = 0; i < currentLives; i++) {
+                hearts += "❤️";
+            }
+            document.getElementById("lives-text").innerText = hearts;
+        }
+
+        function startGame(diff) {
+            currentDifficulty = diff;
+            maxTime = difficulties[diff].time;
+            currentHp = maxHp;
+            currentLives = difficulties[diff].lives;
+
+            document.getElementById("hp-text").innerText = currentHp;
+            document.getElementById("hp-bar").style.width = "100%";
+            updateLivesDisplay();
+            
+            document.getElementById("menu-screen").classList.remove("active");
+            document.getElementById("game-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "block";
+            document.getElementById("back-menu-btn").style.display = "none";
+            document.getElementById("options-container").style.display = "grid";
+            document.getElementById("timer-bar-box").style.display = "block";
+            
+            nextPuzzle();
+        }
+
+        function returnToMenu() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            document.getElementById("game-screen").classList.remove("active");
+            document.getElementById("menu-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "none";
+        }
+
+        function nextPuzzle() {
+            if (currentHp <= 0 || currentLives <= 0) return;
+            
+            isPlaying = true;
+            document.getElementById("puzzle-wrapper").style.display = "block";
+            document.getElementById("result-msg").innerText = "";
+            
+            let count = difficulties[currentDifficulty].count;
+            let hours = [];
+            
+            for (let i = 0; i < count; i++) {
+                hours.push(Math.floor(Math.random() * 12) + 1);
+            }
+
+            let result = hours[0];
+            let htmlContent = `<div class="clock-emoji">${clockEmojis[hours[0] % 12]}</div>`;
+
+            for (let i = 1; i < count; i++) {
+                result += hours[i];
+                htmlContent += `<span class="math-symbol">+</span>`;
+                htmlContent += `<div class="clock-emoji">${clockEmojis[hours[i] % 12]}</div>`;
+            }
+
+            correctAnswer = ((result - 1) % 12 + 1);
+            if (correctAnswer <= 0) correctAnswer += 12;
+
+            document.getElementById("clocks-container").innerHTML = htmlContent;
+
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let wrongAns = Math.floor(Math.random() * 12) + 1;
+                if (!options.includes(wrongAns)) {
+                    options.push(wrongAns);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            let optionsHtml = "";
+            options.forEach(opt => {
+                optionsHtml += `<button class="btn-option" onclick="selectAnswer(${opt})">${opt} GIỜ</button>`;
+            });
+            document.getElementById("options-container").innerHTML = optionsHtml;
+
+            const timerLine = document.getElementById("timer-line");
+            const romanText = document.getElementById("roman-timer-text");
+            
+            timerLine.style.width = "100%";
+            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
+
+            clearInterval(timerInterval);
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = Math.max(0, maxTime - elapsed);
+                
+                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let secondsLeft = Math.ceil(remaining / 1000);
+                romanText.innerText = toRoman(secondsLeft);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
+                }
+            }, 50);
+        }
+
+        function selectAnswer(selected) {
+            if (!isPlaying) return;
+            
+            clearInterval(timerInterval);
+            isPlaying = false;
+
+            if (selected === correctAnswer) {
+                playCorrectSound();
+
+                currentHp -= damagePerHit;
+                if (currentHp < 0) currentHp = 0;
+                document.getElementById("hp-text").innerText = currentHp;
+                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
+
+                if (currentHp <= 0) {
+                    document.getElementById("options-container").style.display = "none";
+                    document.getElementById("timer-bar-box").style.display = "none";
+                    document.getElementById("roman-timer-text").innerText = "";
+                    
+                    let quote = victoryQuotes[currentDifficulty];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 14px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
+                } else {
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                playGameOverSound();
+                document.getElementById("options-container").style.display = "none";
+                document.getElementById("timer-bar-box").style.display = "none";
+                document.getElementById("roman-timer-text").innerText = "";
+                
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${correctAnswer}h)</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
+            } else {
+                playWrongSound();
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${correctAnswer}h)</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+
+        // Tự động khởi tạo ngay khi tải trang xong
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {}
+
+            init3D();
+
+            document.querySelectorAll(".btn-diff").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    startGame(btn.getAttribute("data-diff"));
+                });
+            });
+
+            document.getElementById("music-toggle-btn").addEventListener("click", toggleSound);
+            document.getElementById("ingame-back-btn").addEventListener("click", returnToMenu);
+            document.getElementById("back-menu-btn").addEventListener("click", returnToMenu);
+        });
+    </script>
+</body>
+</html>
