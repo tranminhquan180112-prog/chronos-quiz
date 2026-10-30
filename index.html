@@ -243,3 +243,233 @@
         let currentLives = 3;
         let correctAnswer = 0;
         let maxTime = 30000;
+        let timerInterval = null;
+        let isPlaying = false;
+        let currentDifficulty = 'normal';
+
+        const difficulties = {
+            easy: { time: 30000, count: 1, lives: 3 },
+            normal: { time: 20000, count: 2, lives: 3 },
+            hard: { time: 15000, count: 3, lives: 2 },
+            nightmare: { time: 15000, count: 4, lives: 1 }
+        };
+
+        const victoryQuotes = {
+            easy: "ただ試していただけさ",
+            normal: "さあ、本気を出そうか",
+            hard: "何かおかしいぞ…",
+            nightmare: "馬鹿な…どうやってやり遂げたんだ！？"
+        };
+
+        function toRoman(num) {
+            if (num <= 0) return "0";
+            const romanMap = [
+                { val: 40, str: "XL" }, { val: 10, str: "X" },
+                { val: 9, str: "IX" }, { val: 5, str: "V" },
+                { val: 4, str: "IV" }, { val: 1, str: "I" }
+            ];
+            let res = "";
+            for (let i = 0; i < romanMap.length; i++) {
+                while (num >= romanMap[i].val) {
+                    res += romanMap[i].str;
+                    num -= romanMap[i].val;
+                }
+            }
+            return res;
+        }
+
+        function drawClock(canvasId, hour) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const radius = width / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30 - 90) * (Math.PI / 180);
+                const innerRadius = radius - 10;
+                const outerRadius = radius - 4;
+                
+                const x1 = radius + Math.cos(angle) * innerRadius;
+                const y1 = radius + Math.sin(angle) * innerRadius;
+                const x2 = radius + Math.cos(angle) * outerRadius;
+                const y2 = radius + Math.sin(angle) * outerRadius;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = (i % 3 === 0) ? 3 : 1;
+                ctx.strokeStyle = (i % 3 === 0) ? "#00ffff" : "#8888aa";
+                ctx.stroke();
+            }
+
+            const hourAngle = ((hour % 12) * 30 - 90) * (Math.PI / 180);
+            const handLength = radius * 0.55;
+            
+            ctx.beginPath();
+            ctx.moveTo(radius, radius);
+            ctx.lineTo(radius + Math.cos(hourAngle) * handLength, radius + Math.sin(hourAngle) * handLength);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#ff3366";
+            ctx.lineCap = "round";
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(radius, radius, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = "#ffcc00";
+            ctx.fill();
+        }
+
+        function updateLivesDisplay() {
+            let hearts = "";
+            for (let i = 0; i < currentLives; i++) {
+                hearts += "❤️";
+            }
+            document.getElementById("lives-text").innerText = hearts;
+        }
+
+        function startGame(diff) {
+            currentDifficulty = diff;
+            maxTime = difficulties[diff].time;
+            currentHp = maxHp;
+            currentLives = difficulties[diff].lives;
+
+            document.getElementById("hp-text").innerText = currentHp;
+            document.getElementById("hp-bar").style.width = "100%";
+            updateLivesDisplay();
+            
+            document.getElementById("menu-screen").classList.remove("active");
+            document.getElementById("game-screen").classList.add("active");
+            
+            nextPuzzle();
+        }
+
+        function returnToMenu() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            document.getElementById("game-screen").classList.remove("active");
+            document.getElementById("menu-screen").classList.add("active");
+        }
+
+        function nextPuzzle() {
+            if (currentHp <= 0 || currentLives <= 0) return;
+            
+            isPlaying = true;
+            document.getElementById("result-msg").innerText = "";
+            
+            let count = difficulties[currentDifficulty].count;
+            let hours = [];
+            
+            for (let i = 0; i < count; i++) {
+                hours.push(Math.floor(Math.random() * 12) + 1);
+            }
+
+            let result = hours[0];
+            let htmlContent = `<canvas id="clock-0" class="clock-canvas" width="160" height="160"></canvas>`;
+
+            for (let i = 1; i < count; i++) {
+                result += hours[i];
+                htmlContent += `<span class="math-symbol">+</span>`;
+                htmlContent += `<canvas id="clock-${i}" class="clock-canvas" width="160" height="160"></canvas>`;
+            }
+
+            correctAnswer = ((result - 1) % 12 + 1);
+            if (correctAnswer <= 0) correctAnswer += 12;
+
+            document.getElementById("clocks-container").innerHTML = htmlContent;
+
+            for (let i = 0; i < count; i++) {
+                drawClock(`clock-${i}`, hours[i]);
+            }
+
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let wrongAns = Math.floor(Math.random() * 12) + 1;
+                if (!options.includes(wrongAns)) {
+                    options.push(wrongAns);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            let optionsHtml = "";
+            options.forEach(opt => {
+                optionsHtml += `<button class="btn-option" onclick="selectAnswer(${opt})">${toRoman(opt)}</button>`;
+            });
+            document.getElementById("options-container").innerHTML = optionsHtml;
+
+            const timerLine = document.getElementById("timer-line");
+            const romanText = document.getElementById("roman-timer-text");
+            
+            timerLine.style.width = "100%";
+            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
+
+            clearInterval(timerInterval);
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = Math.max(0, maxTime - elapsed);
+                
+                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let secondsLeft = Math.ceil(remaining / 1000);
+                romanText.innerText = toRoman(secondsLeft);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
+                }
+            }, 50);
+        }
+
+        function selectAnswer(selected) {
+            if (!isPlaying) return;
+            
+            clearInterval(timerInterval);
+            isPlaying = false;
+
+            if (selected === correctAnswer) {
+                currentHp -= damagePerHit;
+                if (currentHp < 0) currentHp = 0;
+                document.getElementById("hp-text").innerText = currentHp;
+                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
+
+                if (currentHp <= 0) {
+                    document.getElementById("options-container").style.display = "none";
+                    document.getElementById("timer-bar-box").style.display = "none";
+                    document.getElementById("roman-timer-text").innerText = "";
+                    
+                    let quote = victoryQuotes[currentDifficulty];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 14px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                } else {
+                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                document.getElementById("options-container").style.display = "none";
+                document.getElementById("timer-bar-box").style.display = "none";
+                document.getElementById("roman-timer-text").innerText = "";
+                
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+            } else {
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
