@@ -703,12 +703,12 @@
                 document.getElementById("timer-bar-box").style.display = "none";
                 document.getElementById("roman-timer-text").innerText = "";
                 
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Hết mạng. (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
                 document.getElementById("back-menu-btn").style.display = "inline-block";
                 document.getElementById("ingame-back-btn").style.display = "none";
             } else {
                 playWrongSound();
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
                 setTimeout(nextPuzzle, 2000);
             }
         }
@@ -735,4 +735,3 @@
     </script>
 </body>
 </html>
-
