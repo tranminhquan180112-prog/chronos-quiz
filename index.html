@@ -6,30 +6,64 @@
     <title>Chronos Quiz - God of Time</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: #03030a;
             font-family: 'Courier New', Courier, monospace;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            color: #fff;
             user-select: none;
         }
 
-        .game-card {
-            background: rgba(10, 10, 24, 0.95);
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Giao diện Menu */
+        #menu-screen {
+            background: rgba(10, 10, 24, 0.90);
             border: 2px solid #00ffff;
-            border-radius: 20px;
-            padding: 20px;
-            width: 90%;
-            max-width: 440px;
+            border-radius: 16px;
+            padding: 16px;
+            width: 100%;
+            max-width: 400px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.35);
-            z-index: 10;
-            position: relative;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(6px);
+        }
+
+        /* Giao diện Trong Game đặt ở sát mép dưới để lộ rõ Chronos phía trên */
+        #game-screen {
+            position: absolute;
+            bottom: 10px;
+            background: rgba(10, 10, 24, 0.85);
+            border: 2px solid #00ffff;
+            border-radius: 14px;
+            padding: 10px 14px;
+            width: 95%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
         }
 
         .game-title {
@@ -43,32 +77,31 @@
         }
 
         .game-subtitle {
-            font-size: 11px;
+            font-size: 10px;
             color: #ff3366;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
             font-weight: bold;
         }
 
         .instructions {
             background: rgba(0, 0, 0, 0.7);
-            border-left: 4px solid #ffcc00;
-            padding: 10px;
+            border-left: 3px solid #ffcc00;
+            padding: 6px 8px;
             text-align: left;
-            font-size: 11px;
-            color: #dddddd;
-            line-height: 1.5;
-            margin-bottom: 14px;
-            border-radius: 6px;
+            font-size: 10px;
+            color: #ddd;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            border-radius: 4px;
         }
 
         .difficulty-header {
-            font-size: 12px;
+            font-size: 11px;
             color: #ffcc00;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .btn-diff {
@@ -76,46 +109,63 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 12px 16px;
-            margin: 6px 0;
-            font-size: 12px;
+            padding: 9px 12px;
+            margin: 5px 0;
+            font-size: 11px;
             font-weight: bold;
             border: 2px solid;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.2s ease;
             text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.3);
         }
-        .btn-easy { color: #00ff66; border-color: #00ff66; }
-        .btn-normal { color: #00e5ff; border-color: #00e5ff; }
-        .btn-hard { color: #ff9900; border-color: #ff9900; }
-        .btn-nightmare { color: #ff3333; border-color: #ff3333; }
-        .btn-diff:hover { filter: brightness(1.3); }
+        .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
+        .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
+        .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
+        .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
+        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); }
+
+        .back-ingame-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 10;
+            background: rgba(255, 51, 51, 0.2);
+            border: 2px solid #ff3333;
+            color: #ff3333;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none;
+        }
+        .back-ingame-btn:hover { background: #ff3333; color: #fff; }
 
         .hud-overlay {
             background: rgba(0, 0, 0, 0.85);
             border: 1px solid rgba(255, 51, 51, 0.5);
-            border-radius: 12px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 5px 8px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .hp-bar-container {
             width: 100%;
-            background: #111111;
-            height: 10px;
-            border-radius: 5px;
+            background: #111;
+            height: 7px;
+            border-radius: 3px;
             overflow: hidden;
             border: 1px solid #ff3333;
-            margin-top: 4px;
+            margin-top: 2px;
         }
         .hp-fill { width: 100%; height: 100%; background: #e63232; transition: width 0.3s; }
 
         .lives-display {
-            font-size: 15px;
+            font-size: 12px;
             color: #ff3366;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: bold;
         }
 
@@ -124,72 +174,84 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 12px;
-            margin: 12px 0;
+            gap: 6px;
+            margin: 6px 0;
             background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 12px;
+            padding: 6px;
+            border-radius: 8px;
             border: 1px dashed rgba(0, 255, 255, 0.4);
         }
 
-        .clock-canvas {
-            width: 80px;
-            height: 80px;
-            background: #111122;
-            border-radius: 50%;
-            border: 2px solid #00ffff;
+        .clock-canvas-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
         }
 
-        .math-symbol { font-size: 22px; font-weight: bold; color: #ffcc00; }
+        .clock-canvas {
+            width: 60px;
+            height: 60px;
+        }
+
+        .math-symbol { font-size: 16px; font-weight: bold; color: #ffcc00; }
 
         .roman-timer {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: bold;
             color: #ff3333;
-            margin-top: 4px;
+            margin-top: 2px;
             letter-spacing: 2px;
+            text-shadow: 0 0 5px #ff3333;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 10px 0;
+            gap: 5px;
+            margin: 6px 0;
         }
 
         .btn-option {
             background: rgba(0, 255, 255, 0.1);
-            border: 2px solid #00ffff;
-            color: #ffffff;
-            padding: 10px;
-            font-size: 16px;
+            border: 1.5px solid #00ffff;
+            color: #fff;
+            padding: 6px;
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 6px;
             cursor: pointer;
-            letter-spacing: 2px;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
         }
-        .btn-option:hover { background: #00ffff; color: #000000; }
+        .btn-option:hover {
+            background: #00ffff;
+            color: #000;
+        }
 
         .timer-bar {
             width: 100%;
-            background: #222222;
-            height: 6px;
-            border-radius: 3px;
-            margin-top: 6px;
+            background: #222;
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 4px;
             overflow: hidden;
         }
         .timer-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.05s linear; }
 
         .btn-action {
             background: #00ffff;
-            color: #000000;
+            color: #000;
             border: none;
-            padding: 8px 16px;
-            font-size: 12px;
+            padding: 5px 12px;
+            font-size: 11px;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-top: 6px;
+            margin-top: 4px;
         }
         .btn-action:hover { background: #00b3b3; }
 
@@ -199,7 +261,12 @@
 </head>
 <body>
 
-    <div class="game-card">
+    <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
+
+    <!-- Canvas vẽ nhân vật Chronos ở nền sau -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="ui-layer">
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="screen active">
             <div class="game-title">Chronos Quiz</div>
@@ -207,7 +274,7 @@
             
             <div class="instructions">
                 • <b>Cách tính:</b> Chỉ cộng giá trị <b>KIM GIỜ ĐỎ (NGẮN)</b>.<br>
-                • Kim phút xanh lá/xanh dương được thêm vào để thử thách.
+                • Kim phút xanh dương được thêm vào để đánh lừa thị giác.
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
@@ -220,13 +287,13 @@
         <!-- GAME SCREEN -->
         <div id="game-screen" class="screen">
             <div class="hud-overlay">
-                <div style="font-size: 12px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
-                <div style="font-size: 10px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
+                <div style="font-size: 10px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
+                <div style="font-size: 8px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
                 <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
                 <div class="lives-display" id="lives-text">❤️❤️❤️</div>
             </div>
 
-            <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 11px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+            <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 9px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
             
             <div class="clocks-display" id="clocks-container"></div>
             <div class="options-grid" id="options-container"></div>
@@ -237,7 +304,7 @@
                 <div class="timer-fill" id="timer-line"></div>
             </div>
 
-            <div id="result-msg" style="margin-top:6px; font-size:13px; min-height:18px;"></div>
+            <div id="result-msg" style="margin-top:2px; font-size:10px; min-height:14px;"></div>
             <button class="btn-action" id="back-menu-btn" style="display:none;" onclick="returnToMenu()">QUAY LẠI MENU</button>
         </div>
     </div>
@@ -291,7 +358,69 @@
             return res;
         }
 
-        function drawClock(canvasId, hour, minute) {
+        // Vẽ Boss Chronos động ở nền sau (nằm ở 1/3 trên màn hình)
+        function initBackground() {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            let angle = 0;
+            function render() {
+                ctx.fillStyle = "rgba(3, 3, 10, 0.4)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height * 0.28;
+
+                angle += 0.01;
+
+                // Vòng quay thời gian
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.arc(0, 0, 100, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 14]);
+                ctx.stroke();
+                ctx.restore();
+
+                // Mắt Chronos
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 80, 36, 0, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+                ctx.fill();
+                ctx.strokeStyle = "#00ffff";
+                ctx.lineWidth = 3.5;
+                ctx.shadowColor = "#00ffff";
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+
+                // Con ngươi đỏ
+                ctx.beginPath();
+                ctx.arc(Math.sin(angle * 2) * 12, 0, 16, 0, Math.PI * 2);
+                ctx.fillStyle = "#ff3366";
+                ctx.shadowColor = "#ff3366";
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.restore();
+
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // Vẽ đồng hồ có Kim Giờ (Đỏ - ngắn) và Kim Phút (Xanh - dài)
+        function drawClockToCanvas(canvasId, hour, minute) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
@@ -301,10 +430,18 @@
 
             ctx.clearRect(0, 0, width, height);
 
+            ctx.beginPath();
+            ctx.arc(radius, radius, radius - 2, 0, 2 * Math.PI);
+            ctx.fillStyle = "#111122";
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#00ffff";
+            ctx.stroke();
+
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
-                const innerRadius = radius - 10;
-                const outerRadius = radius - 4;
+                const innerRadius = radius - 8;
+                const outerRadius = radius - 3;
                 
                 const x1 = radius + Math.cos(angle) * innerRadius;
                 const y1 = radius + Math.sin(angle) * innerRadius;
@@ -314,29 +451,29 @@
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
-                ctx.lineWidth = (i % 3 === 0) ? 3 : 1;
+                ctx.lineWidth = (i % 3 === 0) ? 2 : 1;
                 ctx.strokeStyle = (i % 3 === 0) ? "#00ffff" : "#8888aa";
                 ctx.stroke();
             }
 
-            // Kim phút (kim dài màu xanh dương)
+            // Kim phút (Xanh - Dài)
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
-            const minuteHandLength = radius * 0.75;
+            const minuteHandLength = radius * 0.72;
             ctx.beginPath();
             ctx.moveTo(radius, radius);
             ctx.lineTo(radius + Math.cos(minuteAngle) * minuteHandLength, radius + Math.sin(minuteAngle) * minuteHandLength);
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.strokeStyle = "#00ffcc";
             ctx.lineCap = "round";
             ctx.stroke();
 
-            // Kim giờ (kim ngắn màu đỏ - kim chính để tính toán)
+            // Kim giờ (Đỏ - Ngắn, dùng để tính toán)
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
-            const hourHandLength = radius * 0.50;
+            const hourHandLength = radius * 0.48;
             ctx.beginPath();
             ctx.moveTo(radius, radius);
             ctx.lineTo(radius + Math.cos(hourAngle) * hourHandLength, radius + Math.sin(hourAngle) * hourHandLength);
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 3.5;
             ctx.strokeStyle = "#ff3366";
             ctx.lineCap = "round";
             ctx.stroke();
@@ -371,6 +508,8 @@
 
             document.getElementById("menu-screen").classList.remove("active");
             document.getElementById("game-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "block";
+            document.getElementById("back-menu-btn").style.display = "none";
             
             nextPuzzle();
         }
@@ -380,6 +519,7 @@
             isPlaying = false;
             document.getElementById("game-screen").classList.remove("active");
             document.getElementById("menu-screen").classList.add("active");
+            document.getElementById("ingame-back-btn").style.display = "none";
         }
 
         function nextPuzzle() {
@@ -398,12 +538,12 @@
             }
 
             let result = hours[0];
-            let htmlContent = `<canvas id="clock-0" class="clock-canvas" width="150" height="150"></canvas>`;
+            let htmlContent = `<div class="clock-canvas-box"><canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas></div>`;
 
             for (let i = 1; i < count; i++) {
                 result += hours[i];
                 htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<canvas id="clock-${i}" class="clock-canvas" width="150" height="150"></canvas>`;
+                htmlContent += `<div class="clock-canvas-box"><canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas></div>`;
             }
 
             correctAnswer = ((result - 1) % 12 + 1);
@@ -412,7 +552,7 @@
             document.getElementById("clocks-container").innerHTML = htmlContent;
 
             for (let i = 0; i < count; i++) {
-                drawClock(`clock-${i}`, hours[i], minutes[i]);
+                drawClockToCanvas(`clock-${i}`, hours[i], minutes[i]);
             }
 
             let options = [correctAnswer];
@@ -449,7 +589,7 @@
 
                 if (remaining <= 0) {
                     clearInterval(timerInterval);
-                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
+                    handleFailure("HẾT GIỜ!");
                 }
             }, 50);
         }
@@ -472,15 +612,16 @@
                     document.getElementById("roman-timer-text").style.display = "none";
                     
                     let quote = victoryQuotes[currentDifficulty];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 14px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'><b>YOU WON!</b><br>"${quote}"</span>`;
                     document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
                 } else {
                     let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>CHÍNH XÁC! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>ĐÚNG! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
                     setTimeout(nextPuzzle, 1500);
                 }
             } else {
-                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
+                handleFailure("SAI!");
             }
         }
 
@@ -494,13 +635,18 @@
                 document.getElementById("timer-bar-box").style.display = "none";
                 document.getElementById("roman-timer-text").style.display = "none";
                 
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
                 document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
             } else {
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
                 setTimeout(nextPuzzle, 2000);
             }
         }
+
+        window.onload = () => {
+            initBackground();
+        };
     </script>
 </body>
 </html>
