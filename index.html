@@ -202,7 +202,6 @@
             text-shadow: 0 0 6px #ff3333;
         }
 
-        /* Tối ưu hóa gọn gàng phần nút đáp án */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -259,7 +258,6 @@
 
     <button class="back-ingame-btn" id="ingame-back-btn">⬅ MENU</button>
 
-    <!-- Canvas vẽ nhân vật Chronos ở nền sau -->
     <canvas id="bg-canvas"></canvas>
 
     <div class="ui-layer">
@@ -291,7 +289,6 @@
                 </div>
             </div>
 
-            <!-- Hạ thấp bảng hỏi xuống sát mép dưới để lộ hình Chronos phía trên -->
             <div style="position:absolute; bottom: 8px; width:100%; display:flex; justify-content:center;">
                 <div class="game-card" id="puzzle-wrapper" style="max-width: 380px;">
                     <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 10px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
@@ -338,6 +335,14 @@
             nightmare: "馬鹿な…どうやってやり遂げたんだ！？"
         };
 
+        // Các câu thoại tiếng Nhật của Chronos khi người chơi trả lời đúng
+        const correctQuotes = [
+            "ちっ…やるな！",
+            "フッ、偶然だな…",
+            "次もその運が続くかな？",
+            "面白い…だが次はどうかな？"
+        ];
+
         function toRoman(num) {
             if (num <= 0) return "0";
             const romanMap = [
@@ -355,7 +360,6 @@
             return res;
         }
 
-        // Vẽ nhân vật Boss Chronos hiển thị rõ nét ở khoảng không nửa trên màn hình
         function initBackground() {
             const canvas = document.getElementById('bg-canvas');
             const ctx = canvas.getContext('2d');
@@ -373,11 +377,10 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 const cx = canvas.width / 2;
-                const cy = canvas.height * 0.33; // Đặt Chronos ở 1/3 chiều cao màn hình
+                const cy = canvas.height * 0.33;
 
                 angle += 0.01;
 
-                // Vòng xoay thời gian
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(angle);
@@ -389,7 +392,6 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Mắt Chronos
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.beginPath();
@@ -402,7 +404,6 @@
                 ctx.shadowBlur = 18;
                 ctx.stroke();
 
-                // Con ngươi màu đỏ rực
                 ctx.beginPath();
                 ctx.arc(Math.sin(angle * 2) * 12, 0, 18, 0, Math.PI * 2);
                 ctx.fillStyle = "#ff3366";
@@ -416,7 +417,6 @@
             render();
         }
 
-        // Vẽ đồng hồ có cả Kim Giờ (Ngắn - Đỏ) và Kim Phút (Dài - Xanh)
         function drawClockToCanvas(canvasId, hour, minute) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
@@ -427,7 +427,6 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            // Nền mặt đồng hồ
             ctx.beginPath();
             ctx.arc(radius, radius, radius - 3, 0, 2 * Math.PI);
             ctx.fillStyle = "#111122";
@@ -436,7 +435,6 @@
             ctx.strokeStyle = "#00ffff";
             ctx.stroke();
 
-            // 12 vạch chia giờ
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
                 const innerRadius = radius - 10;
@@ -455,7 +453,6 @@
                 ctx.stroke();
             }
 
-            // 1. KIM PHÚT (Kim dài màu xanh dương)
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
             const minuteHandLength = radius * 0.75;
             ctx.beginPath();
@@ -466,7 +463,6 @@
             ctx.lineCap = "round";
             ctx.stroke();
 
-            // 2. KIM GIỜ (Kim ngắn màu đỏ - Kim chính để tính toán)
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
             const hourHandLength = radius * 0.50;
             ctx.beginPath();
@@ -477,7 +473,6 @@
             ctx.lineCap = "round";
             ctx.stroke();
 
-            // Tâm đồng hồ
             ctx.beginPath();
             ctx.arc(radius, radius, 3.5, 0, 2 * Math.PI);
             ctx.fillStyle = "#ffcc00";
@@ -585,7 +580,7 @@
             
             for (let i = 0; i < count; i++) {
                 hours.push(Math.floor(Math.random() * 12) + 1);
-                minutes.push(Math.floor(Math.random() * 12) * 5); // Tạo phút ngẫu nhiên theo mốc 5 phút
+                minutes.push(Math.floor(Math.random() * 12) * 5);
             }
 
             let result = hours[0];
@@ -660,4 +655,65 @@
                 document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
 
                 if (currentHp <= 0) {
-                    document.getElementById("options-
+                    document.getElementById("options-container").style.display = "none";
+                    document.getElementById("timer-bar-box").style.display = "none";
+                    document.getElementById("roman-timer-text").style.display = "none";
+                    
+                    let quote = victoryQuotes[currentDifficulty];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 13px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
+                } else {
+                    // Chọn ngẫu nhiên câu thoại tiếng Nhật khi trả lời đúng
+                    let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>CHÍNH XÁC! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                playGameOverSound();
+                document.getElementById("options-container").style.display = "none";
+                document.getElementById("timer-bar-box").style.display = "none";
+                document.getElementById("roman-timer-text").style.display = "none";
+                
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
+            } else {
+                playWrongSound();
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {}
+
+            initBackground();
+
+            document.querySelectorAll(".btn-diff").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    startGame(btn.getAttribute("data-diff"));
+                });
+            });
+
+            document.getElementById("ingame-back-btn").addEventListener("click", returnToMenu);
+            document.getElementById("back-menu-btn").addEventListener("click", returnToMenu);
+        });
+    </script>
+</body>
+</html>
