@@ -21,8 +21,10 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100vw;
             z-index: 1;
+            width: 100%;
+            height: 100%;
         }
 
         .ui-layer {
@@ -40,7 +42,7 @@
         }
 
         .game-card {
-            background: rgba(10, 10, 24, 0.82);
+            background: rgba(10, 10, 24, 0.85);
             border: 2px solid #00ffff;
             border-radius: 16px;
             padding: 12px 16px;
@@ -279,33 +281,27 @@
         </div>
 
         <!-- GAME SCREEN -->
-        <div id="game-screen" class="screen" style="width:100%; height:100%; position:relative;">
-            <div style="display:flex; justify-content:center; width:100%;">
-                <div class="hud-overlay">
-                    <div style="font-size: 11px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
-                    <div style="font-size: 9px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
-                    <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
-                    <div class="lives-display" id="lives-text">❤️❤️❤️</div>
-                </div>
+        <div id="game-screen" class="game-card screen" style="max-width: 380px; position: absolute; bottom: 8px;">
+            <div class="hud-overlay" style="top: -65px; left: 50%; transform: translateX(-50%);">
+                <div style="font-size: 11px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
+                <div style="font-size: 9px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
+                <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
+                <div class="lives-display" id="lives-text">❤️❤️❤️</div>
             </div>
 
-            <div style="position:absolute; bottom: 8px; width:100%; display:flex; justify-content:center;">
-                <div class="game-card" id="puzzle-wrapper" style="max-width: 380px;">
-                    <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 10px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
-                    
-                    <div class="clocks-display" id="clocks-container"></div>
-                    <div class="options-grid" id="options-container"></div>
-                    
-                    <div class="roman-timer" id="roman-timer-text">XXX</div>
+            <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 10px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+            
+            <div class="clocks-display" id="clocks-container"></div>
+            <div class="options-grid" id="options-container"></div>
+            
+            <div class="roman-timer" id="roman-timer-text">XXX</div>
 
-                    <div class="timer-bar" id="timer-bar-box">
-                        <div class="timer-fill" id="timer-line"></div>
-                    </div>
-
-                    <div id="result-msg" style="margin-top:3px; font-size:11px; min-height:14px;"></div>
-                    <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000;">QUAY LẠI MENU</button>
-                </div>
+            <div class="timer-bar" id="timer-bar-box">
+                <div class="timer-fill" id="timer-line"></div>
             </div>
+
+            <div id="result-msg" style="margin-top:3px; font-size:11px; min-height:14px;"></div>
+            <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000;">QUAY LẠI MENU</button>
         </div>
     </div>
 
@@ -335,7 +331,6 @@
             nightmare: "馬鹿な…どうやってやり遂げたんだ！？"
         };
 
-        // Các câu thoại tiếng Nhật của Chronos khi người chơi trả lời đúng
         const correctQuotes = [
             "ちっ…やるな！",
             "フッ、偶然だな…",
@@ -571,7 +566,6 @@
             if (currentHp <= 0 || currentLives <= 0) return;
             
             isPlaying = true;
-            document.getElementById("puzzle-wrapper").style.display = "block";
             document.getElementById("result-msg").innerText = "";
             
             let count = difficulties[currentDifficulty].count;
@@ -664,7 +658,6 @@
                     document.getElementById("back-menu-btn").style.display = "inline-block";
                     document.getElementById("ingame-back-btn").style.display = "none";
                 } else {
-                    // Chọn ngẫu nhiên câu thoại tiếng Nhật khi trả lời đúng
                     let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
                     document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>CHÍNH XÁC! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
                     setTimeout(nextPuzzle, 1500);
