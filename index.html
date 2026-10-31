@@ -107,8 +107,8 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 9px 12px;
-            margin: 5px 0;
+            padding: 8px 12px;
+            margin: 4px 0;
             font-size: 11px;
             font-weight: bold;
             border: 2px solid;
@@ -117,6 +117,7 @@
             transition: all 0.2s ease;
             text-transform: uppercase;
         }
+        .btn-baby { background: rgba(255, 105, 180, 0.1); color: #ff69b4; border-color: #ff69b4; }
         .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
         .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
         .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
@@ -165,6 +166,8 @@
             color: #ff3366;
             margin-top: 2px;
             font-weight: bold;
+            max-height: 40px;
+            overflow-y: auto;
         }
 
         .clocks-display {
@@ -275,6 +278,7 @@
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
+            <button class="btn-diff btn-baby" onclick="startGame('baby')"><span>Baby (1 Đồng - 67 Mạng) <i style="font-size:9px;">(chỉ dành cho em bé)</i></span> <span>3600s</span></button>
             <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>60s</span></button>
             <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>45s</span></button>
             <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>25s</span></button>
@@ -317,8 +321,9 @@
         let isPlaying = false;
         let currentDifficulty = 'normal';
 
-        // Cập nhật thời gian chính xác: Easy 60s, Normal 45s, Hard 25s, Nightmare 20s
+        // Cấu hình các độ khó (Baby: 3600s, 1 đồng, 67 mạng)
         const difficulties = {
+            baby: { time: 3600000, count: 1, lives: 67 },
             easy: { time: 60000, count: 1, lives: 3 },
             normal: { time: 45000, count: 2, lives: 3 },
             hard: { time: 25000, count: 3, lives: 2 },
@@ -326,6 +331,7 @@
         };
 
         const victoryQuotes = {
+            baby: "赤ちゃんつよいね…！",
             easy: "ただ試していただけさ",
             normal: "さあ、本気を出そうか",
             hard: "何かおかしいぞ…",
@@ -356,288 +362,4 @@
             return res;
         }
 
-        function initBackground() {
-            const canvas = document.getElementById('bg-canvas');
-            const ctx = canvas.getContext('2d');
-
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            resize();
-            window.addEventListener('resize', resize);
-
-            let angle = 0;
-            function render() {
-                ctx.fillStyle = "rgba(3, 3, 10, 0.4)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                const cx = canvas.width / 2;
-                const cy = canvas.height * 0.28;
-
-                angle += 0.01;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.arc(0, 0, 100, 0, Math.PI * 2);
-                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
-                ctx.lineWidth = 3;
-                ctx.setLineDash([10, 14]);
-                ctx.stroke();
-                ctx.restore();
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 80, 36, 0, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-                ctx.fill();
-                ctx.strokeStyle = "#00ffff";
-                ctx.lineWidth = 3.5;
-                ctx.shadowColor = "#00ffff";
-                ctx.shadowBlur = 15;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(Math.sin(angle * 2) * 12, 0, 16, 0, Math.PI * 2);
-                ctx.fillStyle = "#ff3366";
-                ctx.shadowColor = "#ff3366";
-                ctx.shadowBlur = 10;
-                ctx.fill();
-                ctx.restore();
-
-                requestAnimationFrame(render);
-            }
-            render();
-        }
-
-        function drawClockToCanvas(canvasId, hour, minute) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const radius = width / 2;
-
-            ctx.clearRect(0, 0, width, height);
-
-            ctx.beginPath();
-            ctx.arc(radius, radius, radius - 2, 0, 2 * Math.PI);
-            ctx.fillStyle = "#111122";
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "#00ffff";
-            ctx.stroke();
-
-            for (let i = 1; i <= 12; i++) {
-                const angle = (i * 30 - 90) * (Math.PI / 180);
-                const innerRadius = radius - 8;
-                const outerRadius = radius - 3;
-                
-                const x1 = radius + Math.cos(angle) * innerRadius;
-                const y1 = radius + Math.sin(angle) * innerRadius;
-                const x2 = radius + Math.cos(angle) * outerRadius;
-                const y2 = radius + Math.sin(angle) * outerRadius;
-
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.lineWidth = (i % 3 === 0) ? 2 : 1;
-                ctx.strokeStyle = (i % 3 === 0) ? "#00ffff" : "#8888aa";
-                ctx.stroke();
-            }
-
-            const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
-            const minuteHandLength = radius * 0.72;
-            ctx.beginPath();
-            ctx.moveTo(radius, radius);
-            ctx.lineTo(radius + Math.cos(minuteAngle) * minuteHandLength, radius + Math.sin(minuteAngle) * minuteHandLength);
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "#00ffcc";
-            ctx.lineCap = "round";
-            ctx.stroke();
-
-            const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
-            const hourHandLength = radius * 0.48;
-            ctx.beginPath();
-            ctx.moveTo(radius, radius);
-            ctx.lineTo(radius + Math.cos(hourAngle) * hourHandLength, radius + Math.sin(hourAngle) * hourHandLength);
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = "#ff3366";
-            ctx.lineCap = "round";
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(radius, radius, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = "#ffcc00";
-            ctx.fill();
-        }
-
-        function updateLivesDisplay() {
-            let hearts = "";
-            for (let i = 0; i < currentLives; i++) {
-                hearts += "❤️";
-            }
-            document.getElementById("lives-text").innerText = hearts;
-        }
-
-        function startGame(diff) {
-            currentDifficulty = diff;
-            maxTime = difficulties[diff].time;
-            currentHp = maxHp;
-            currentLives = difficulties[diff].lives;
-
-            document.getElementById("hp-text").innerText = currentHp;
-            document.getElementById("hp-bar").style.width = "100%";
-            updateLivesDisplay();
-            
-            document.getElementById("options-container").style.display = "grid";
-            document.getElementById("timer-bar-box").style.display = "block";
-            document.getElementById("roman-timer-text").style.display = "block";
-
-            document.getElementById("menu-screen").classList.remove("active");
-            document.getElementById("game-screen").classList.add("active");
-            document.getElementById("ingame-back-btn").style.display = "block";
-            document.getElementById("back-menu-btn").style.display = "none";
-            
-            nextPuzzle();
-        }
-
-        function returnToMenu() {
-            clearInterval(timerInterval);
-            isPlaying = false;
-            document.getElementById("game-screen").classList.remove("active");
-            document.getElementById("menu-screen").classList.add("active");
-            document.getElementById("ingame-back-btn").style.display = "none";
-        }
-
-        function nextPuzzle() {
-            if (currentHp <= 0 || currentLives <= 0) return;
-            
-            isPlaying = true;
-            document.getElementById("result-msg").innerText = "";
-            
-            let count = difficulties[currentDifficulty].count;
-            let hours = [];
-            let minutes = [];
-            
-            for (let i = 0; i < count; i++) {
-                hours.push(Math.floor(Math.random() * 12) + 1);
-                minutes.push(Math.floor(Math.random() * 12) * 5);
-            }
-
-            let result = hours[0];
-            let htmlContent = `<div class="clock-canvas-box"><canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas></div>`;
-
-            for (let i = 1; i < count; i++) {
-                result += hours[i];
-                htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<div class="clock-canvas-box"><canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas></div>`;
-            }
-
-            correctAnswer = ((result - 1) % 12 + 1);
-            if (correctAnswer <= 0) correctAnswer += 12;
-
-            document.getElementById("clocks-container").innerHTML = htmlContent;
-
-            for (let i = 0; i < count; i++) {
-                drawClockToCanvas(`clock-${i}`, hours[i], minutes[i]);
-            }
-
-            let options = [correctAnswer];
-            while (options.length < 4) {
-                let wrongAns = Math.floor(Math.random() * 12) + 1;
-                if (!options.includes(wrongAns)) {
-                    options.push(wrongAns);
-                }
-            }
-            options.sort(() => Math.random() - 0.5);
-
-            let optionsHtml = "";
-            options.forEach(opt => {
-                optionsHtml += `<button class="btn-option" onclick="selectAnswer(${opt})">${toRoman(opt)}</button>`;
-            });
-            document.getElementById("options-container").innerHTML = optionsHtml;
-
-            const timerLine = document.getElementById("timer-line");
-            const romanText = document.getElementById("roman-timer-text");
-            
-            timerLine.style.width = "100%";
-            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
-
-            clearInterval(timerInterval);
-            let startTime = Date.now();
-            
-            timerInterval = setInterval(() => {
-                let elapsed = Date.now() - startTime;
-                let remaining = Math.max(0, maxTime - elapsed);
-                
-                timerLine.style.width = (remaining / maxTime * 100) + "%";
-                let secondsLeft = Math.ceil(remaining / 1000);
-                romanText.innerText = toRoman(secondsLeft);
-
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    handleFailure("HẾT GIỜ!");
-                }
-            }, 50);
-        }
-
-        function selectAnswer(selected) {
-            if (!isPlaying) return;
-            
-            clearInterval(timerInterval);
-            isPlaying = false;
-
-            if (selected === correctAnswer) {
-                currentHp -= damagePerHit;
-                if (currentHp < 0) currentHp = 0;
-                document.getElementById("hp-text").innerText = currentHp;
-                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
-
-                if (currentHp <= 0) {
-                    document.getElementById("options-container").style.display = "none";
-                    document.getElementById("timer-bar-box").style.display = "none";
-                    document.getElementById("roman-timer-text").style.display = "none";
-                    
-                    let quote = victoryQuotes[currentDifficulty];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'><b>YOU WON!</b><br>"${quote}"</span>`;
-                    document.getElementById("back-menu-btn").style.display = "inline-block";
-                    document.getElementById("ingame-back-btn").style.display = "none";
-                } else {
-                    let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>ĐÚNG! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
-                    setTimeout(nextPuzzle, 1500);
-                }
-            } else {
-                handleFailure("SAI!");
-            }
-        }
-
-        function handleFailure(msg) {
-            isPlaying = false;
-            currentLives--;
-            updateLivesDisplay();
-
-            if (currentLives <= 0) {
-                document.getElementById("options-container").style.display = "none";
-                document.getElementById("timer-bar-box").style.display = "none";
-                document.getElementById("roman-timer-text").style.display = "none";
-                
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
-                document.getElementById("back-menu-btn").style.display = "inline-block";
-                document.getElementById("ingame-back-btn").style.display = "none";
-            } else {
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
-                setTimeout(nextPuzzle, 2000);
-            }
-        }
-
-        window.onload = () => {
-            initBackground();
-        };
-    </script>
-</body>
-</html>
+        function
