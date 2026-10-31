@@ -236,7 +236,15 @@
         .screen.active { display: block; }
     </style>
 </head>
-<body>
+<body onclick="handleUserInteraction()">
+
+    <!-- Nhạc nền trực tiếp (Menu & Battle) -->
+    <audio id="menu-audio" loop preload="auto">
+        <source src="https://ant.codes/demos/audio/supermeatboy_world6.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="battle-audio" loop preload="auto">
+        <source src="https://ant.codes/demos/audio/battlebricks_timesillusion.mp3" type="audio/mpeg">
+    </audio>
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
@@ -304,7 +312,7 @@
         let timerInterval = null;
         let isPlaying = false;
         let currentDifficulty = 'normal';
-        let audioCtx = null;
+        let musicStarted = false;
 
         const difficulties = {
             baby: { time: 3600000, count: 1, lives: 67 },
@@ -329,35 +337,52 @@
             "面白い…だが次はどうかな？"
         ];
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+        function handleUserInteraction() {
+            if (!musicStarted) {
+                musicStarted = true;
+                playMenuMusic();
             }
         }
 
-        function playSound(type) {
+        function playMenuMusic() {
+            const menuAudio = document.getElementById("menu-audio");
+            const battleAudio = document.getElementById("battle-audio");
+            battleAudio.pause();
+            battleAudio.currentTime = 0;
+            menuAudio.play().catch(e => console.log("Audio block: ", e));
+        }
+
+        function playBattleMusic() {
+            const menuAudio = document.getElementById("menu-audio");
+            const battleAudio = document.getElementById("battle-audio");
+            menuAudio.pause();
+            menuAudio.currentTime = 0;
+            battleAudio.play().catch(e => console.log("Audio block: ", e));
+        }
+
+        // Hiệu ứng âm thanh đúng/sai sinh động bằng Web Audio API
+        function playSfx(type) {
             try {
-                initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
 
                 if (type === 'correct') {
-                    osc.frequency.setValueAtTime(587.33, now); // D5
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.2); // C6
                     gain.gain.setValueAtTime(0.2, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                     osc.start(now);
                     osc.stop(now + 0.3);
                 } else {
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(70, now + 0.3);
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                     osc.start(now);
@@ -460,7 +485,7 @@
         }
 
         function startGame(diff) {
-            initAudio();
+            playBattleMusic();
             currentDifficulty = diff;
             maxTime = difficulties[diff].time;
             currentHp = maxHp;
@@ -483,6 +508,7 @@
         }
 
         function returnToMenu() {
+            playMenuMusic();
             clearInterval(timerInterval);
             isPlaying = false;
             document.getElementById("game-screen").classList.remove("active");
@@ -569,7 +595,7 @@
             isPlaying = false;
 
             if (selected === correctAnswer) {
-                playSound('correct');
+                playSfx('correct');
                 currentHp -= damagePerHit;
                 if (currentHp < 0) currentHp = 0;
                 document.getElementById("hp-text").innerText = currentHp;
@@ -595,7 +621,7 @@
         }
 
         function handleFailure(msg) {
-            playSound('wrong');
+            playSfx('wrong');
             isPlaying = false;
             currentLives--;
             updateLivesDisplay();
