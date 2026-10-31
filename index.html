@@ -117,7 +117,7 @@
             transition: all 0.2s ease;
             text-transform: uppercase;
         }
-        .btn-baby { background: rgba(255, 105, 180, 0.1); color: #ff69b4; border-color: #ff69b4; }
+        .btn-baby { background: rgba(255, 105, 180, 0.15); color: #ff69b4; border-color: #ff69b4; }
         .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
         .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
         .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
@@ -539,4 +539,112 @@
             let htmlContent = `<div class="clock-canvas-box"><canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas></div>`;
 
             for (let i = 1; i < count; i++) {
+                result += hours[i];
+                htmlContent += `<span class="math-symbol">+</span>`;
+                htmlContent += `<div class="clock-canvas-box"><canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas></div>`;
+            }
+
+            correctAnswer = ((result - 1) % 12 + 1);
+            if (correctAnswer <= 0) correctAnswer += 12;
+
+            document.getElementById("clocks-container").innerHTML = htmlContent;
+
+            for (let i = 0; i < count; i++) {
+                drawClockToCanvas(`clock-${i}`, hours[i], minutes[i]);
+            }
+
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let wrongAns = Math.floor(Math.random() * 12) + 1;
+                if (!options.includes(wrongAns)) {
+                    options.push(wrongAns);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            let optionsHtml = "";
+            options.forEach(opt => {
+                optionsHtml += `<button class="btn-option" onclick="selectAnswer(${opt})">${toRoman(opt)}</button>`;
+            });
+            document.getElementById("options-container").innerHTML = optionsHtml;
+
+            const timerLine = document.getElementById("timer-line");
+            const romanText = document.getElementById("roman-timer-text");
+            
+            timerLine.style.width = "100%";
+            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
+
+            clearInterval(timerInterval);
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = Math.max(0, maxTime - elapsed);
                 
+                timerLine.style.width = (remaining / maxTime * 100) + "%";
+                let secondsLeft = Math.ceil(remaining / 1000);
+                romanText.innerText = toRoman(secondsLeft);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleFailure("HẾT GIỜ!");
+                }
+            }, 50);
+        }
+
+        function selectAnswer(selected) {
+            if (!isPlaying) return;
+            
+            clearInterval(timerInterval);
+            isPlaying = false;
+
+            if (selected === correctAnswer) {
+                currentHp -= damagePerHit;
+                if (currentHp < 0) currentHp = 0;
+                document.getElementById("hp-text").innerText = currentHp;
+                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
+
+                if (currentHp <= 0) {
+                    document.getElementById("options-container").style.display = "none";
+                    document.getElementById("timer-bar-box").style.display = "none";
+                    document.getElementById("roman-timer-text").style.display = "none";
+                    
+                    let quote = victoryQuotes[currentDifficulty];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'><b>YOU WON!</b><br>"${quote}"</span>`;
+                    document.getElementById("back-menu-btn").style.display = "inline-block";
+                    document.getElementById("ingame-back-btn").style.display = "none";
+                } else {
+                    let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
+                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>ĐÚNG! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI!");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                document.getElementById("options-container").style.display = "none";
+                document.getElementById("timer-bar-box").style.display = "none";
+                document.getElementById("roman-timer-text").style.display = "none";
+                
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
+            } else {
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+
+        window.onload = () => {
+            initBackground();
+        };
+    </script>
+</body>
+</html>
