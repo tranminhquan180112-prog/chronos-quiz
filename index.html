@@ -21,10 +21,8 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vw;
+            height: 100vh;
             z-index: 1;
-            width: 100%;
-            height: 100%;
         }
 
         .ui-layer {
@@ -145,6 +143,8 @@
             padding: 6px 10px;
             text-align: center;
             pointer-events: auto;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .hp-bar-container {
@@ -258,7 +258,7 @@
 </head>
 <body>
 
-    <button class="back-ingame-btn" id="ingame-back-btn">⬅ MENU</button>
+    <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
     <canvas id="bg-canvas"></canvas>
 
@@ -274,15 +274,15 @@
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
-            <button class="btn-diff btn-easy" data-diff="easy"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>XXXs</span></button>
-            <button class="btn-diff btn-normal" data-diff="normal"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>XXs</span></button>
-            <button class="btn-diff btn-hard" data-diff="hard"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>XVs</span></button>
-            <button class="btn-diff btn-nightmare" data-diff="nightmare"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>XXXs</span></button>
+            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>XXs</span></button>
+            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
         </div>
 
         <!-- GAME SCREEN -->
         <div id="game-screen" class="game-card screen" style="max-width: 380px; position: absolute; bottom: 8px;">
-            <div class="hud-overlay" style="top: -65px; left: 50%; transform: translateX(-50%);">
+            <div class="hud-overlay">
                 <div style="font-size: 11px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
                 <div style="font-size: 9px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
                 <div class="hp-bar-container"><div class="hp-fill" id="hp-bar"></div></div>
@@ -301,7 +301,7 @@
             </div>
 
             <div id="result-msg" style="margin-top:3px; font-size:11px; min-height:14px;"></div>
-            <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000;">QUAY LẠI MENU</button>
+            <button class="btn-action" id="back-menu-btn" style="display:none; background:#00ffff; color:#000;" onclick="returnToMenu()">QUAY LẠI MENU</button>
         </div>
     </div>
 
@@ -533,6 +533,10 @@
         }
 
         function startGame(diff) {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
             currentDifficulty = diff;
             maxTime = difficulties[diff].time;
             currentHp = maxHp;
@@ -688,25 +692,12 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        window.onload = () => {
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             } catch(e) {}
-
             initBackground();
-
-            document.querySelectorAll(".btn-diff").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    if (audioCtx && audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                    startGame(btn.getAttribute("data-diff"));
-                });
-            });
-
-            document.getElementById("ingame-back-btn").addEventListener("click", returnToMenu);
-            document.getElementById("back-menu-btn").addEventListener("click", returnToMenu);
-        });
+        };
     </script>
 </body>
 </html>
