@@ -38,7 +38,6 @@
             padding: 10px;
         }
 
-        /* Giao diện Menu */
         #menu-screen {
             background: rgba(10, 10, 24, 0.90);
             border: 2px solid #00ffff;
@@ -51,7 +50,6 @@
             backdrop-filter: blur(6px);
         }
 
-        /* Giao diện Trong Game đặt ở sát mép dưới để lộ rõ Chronos phía trên */
         #game-screen {
             position: absolute;
             bottom: 10px;
@@ -263,7 +261,6 @@
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
-    <!-- Canvas vẽ nhân vật Chronos ở nền sau -->
     <canvas id="bg-canvas"></canvas>
 
     <div class="ui-layer">
@@ -278,10 +275,10 @@
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
-            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>XXXs</span></button>
-            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>XXs</span></button>
-            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>XVs</span></button>
-            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>XVs</span></button>
+            <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>60s</span></button>
+            <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>45s</span></button>
+            <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>25s</span></button>
+            <button class="btn-diff btn-nightmare" onclick="startGame('nightmare')"><span>4. Nightmare (4 Đồng - 1 Mạng)</span> <span>20s</span></button>
         </div>
 
         <!-- GAME SCREEN -->
@@ -315,16 +312,17 @@
         const damagePerHit = 6000;
         let currentLives = 3;
         let correctAnswer = 0;
-        let maxTime = 30000;
+        let maxTime = 60000;
         let timerInterval = null;
         let isPlaying = false;
         let currentDifficulty = 'normal';
 
+        // Cập nhật thời gian theo yêu cầu: Easy 60s, Normal 45s, Hard 25s, Nightmare 20s
         const difficulties = {
-            easy: { time: 30000, count: 1, lives: 3 },
-            normal: { time: 20000, count: 2, lives: 3 },
-            hard: { time: 15000, count: 3, lives: 2 },
-            nightmare: { time: 15000, count: 4, lives: 1 }
+            easy: { time: 60000, count: 1, lives: 3 },
+            normal: { time: 45000, count: 2, lives: 3 },
+            hard: { time: 25000, count: 3, lives: 2 },
+            nightmare: { time: 20000, count: 4, lives: 1 }
         };
 
         const victoryQuotes = {
@@ -358,7 +356,6 @@
             return res;
         }
 
-        // Vẽ Boss Chronos động ở nền sau (nằm ở 1/3 trên màn hình)
         function initBackground() {
             const canvas = document.getElementById('bg-canvas');
             const ctx = canvas.getContext('2d');
@@ -380,7 +377,6 @@
 
                 angle += 0.01;
 
-                // Vòng quay thời gian
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(angle);
@@ -392,7 +388,6 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Mắt Chronos
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.beginPath();
@@ -405,7 +400,6 @@
                 ctx.shadowBlur = 15;
                 ctx.stroke();
 
-                // Con ngươi đỏ
                 ctx.beginPath();
                 ctx.arc(Math.sin(angle * 2) * 12, 0, 16, 0, Math.PI * 2);
                 ctx.fillStyle = "#ff3366";
@@ -419,7 +413,6 @@
             render();
         }
 
-        // Vẽ đồng hồ có Kim Giờ (Đỏ - ngắn) và Kim Phút (Xanh - dài)
         function drawClockToCanvas(canvasId, hour, minute) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
@@ -456,7 +449,6 @@
                 ctx.stroke();
             }
 
-            // Kim phút (Xanh - Dài)
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
             const minuteHandLength = radius * 0.72;
             ctx.beginPath();
@@ -467,7 +459,6 @@
             ctx.lineCap = "round";
             ctx.stroke();
 
-            // Kim giờ (Đỏ - Ngắn, dùng để tính toán)
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
             const hourHandLength = radius * 0.48;
             ctx.beginPath();
@@ -618,35 +609,3 @@
                 } else {
                     let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
                     document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>ĐÚNG! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
-                    setTimeout(nextPuzzle, 1500);
-                }
-            } else {
-                handleFailure("SAI!");
-            }
-        }
-
-        function handleFailure(msg) {
-            isPlaying = false;
-            currentLives--;
-            updateLivesDisplay();
-
-            if (currentLives <= 0) {
-                document.getElementById("options-container").style.display = "none";
-                document.getElementById("timer-bar-box").style.display = "none";
-                document.getElementById("roman-timer-text").style.display = "none";
-                
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
-                document.getElementById("back-menu-btn").style.display = "inline-block";
-                document.getElementById("ingame-back-btn").style.display = "none";
-            } else {
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
-                setTimeout(nextPuzzle, 2000);
-            }
-        }
-
-        window.onload = () => {
-            initBackground();
-        };
-    </script>
-</body>
-</html>
