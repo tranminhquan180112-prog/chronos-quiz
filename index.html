@@ -14,59 +14,57 @@
             color: #fff;
             user-select: none;
             overflow: hidden;
-            position: relative;
-        }
-
-        #bg-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: space-between;
             padding: 10px;
         }
 
-        #menu-screen {
+        /* Boss Chronos vẽ bằng CSS SVG - không bao giờ lo đơ/đen màn hình */
+        .chronos-container {
+            width: 100%;
+            height: 30vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chronos-svg {
+            width: 160px;
+            height: 160px;
+            filter: drop-shadow(0 0 15px #00ffff);
+            animation: floatAnim 3s infinite ease-in-out;
+        }
+
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .ui-container {
+            width: 100%;
+            max-width: 380px;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        .game-card {
             background: #0a0a18;
             border: 2px solid #00ffff;
             border-radius: 16px;
-            padding: 16px;
+            padding: 12px;
             width: 100%;
-            max-width: 380px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
-        }
-
-        #game-screen {
-            position: absolute;
-            bottom: 12px;
-            background: rgba(10, 10, 24, 0.92);
-            border: 2px solid #00ffff;
-            border-radius: 14px;
-            padding: 10px;
-            width: 95%;
-            max-width: 360px;
             text-align: center;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
         }
 
         .game-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #00ffff;
             text-transform: uppercase;
@@ -89,7 +87,7 @@
             font-size: 10px;
             color: #ddd;
             line-height: 1.4;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-radius: 4px;
         }
 
@@ -106,9 +104,9 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 9px 12px;
-            margin: 5px 0;
-            font-size: 11px;
+            padding: 8px 10px;
+            margin: 4px 0;
+            font-size: 10px;
             font-weight: bold;
             border: 2px solid;
             border-radius: 8px;
@@ -178,8 +176,8 @@
         }
 
         .clock-canvas {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             background: #111122;
             border-radius: 50%;
         }
@@ -242,11 +240,24 @@
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
-    <canvas id="bg-canvas"></canvas>
+    <!-- Nửa trên: Hình ảnh Boss Chronos phát sáng -->
+    <div class="chronos-container">
+        <svg class="chronos-svg" viewBox="0 0 100 100">
+            <!-- Vòng thời gian bên ngoài -->
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#00ffff" stroke-width="2" stroke-dasharray="6,4" />
+            <circle cx="50" cy="50" r="35" fill="#050515" stroke="#ff3366" stroke-width="1.5" />
+            <!-- Mắt Chronos -->
+            <ellipse cx="50" cy="50" rx="25" ry="12" fill="#000" stroke="#00ffff" stroke-width="2" />
+            <!-- Con ngươi đỏ -->
+            <circle cx="50" cy="50" r="6" fill="#ff3366" />
+            <circle cx="50" cy="50" r="2" fill="#fff" />
+        </svg>
+    </div>
 
-    <div class="ui-layer">
+    <!-- Nửa dưới: Khung câu hỏi và Menu -->
+    <div class="ui-container">
         <!-- MENU SCREEN -->
-        <div id="menu-screen" class="screen active">
+        <div id="menu-screen" class="game-card screen active">
             <div class="game-title">Chronos Quiz</div>
             <div class="game-subtitle">THE BATTLE BRICKS 3D</div>
             
@@ -264,7 +275,7 @@
         </div>
 
         <!-- GAME SCREEN -->
-        <div id="game-screen" class="screen">
+        <div id="game-screen" class="game-card screen">
             <div class="hud-overlay">
                 <div style="font-size: 10px; color: #ff3333; font-weight: bold;">CHRONOS (GOD OF TIME)</div>
                 <div style="font-size: 8px; color: #aaa; margin-top: 1px;">HP: <span id="hp-text">42000</span> / 42000</div>
@@ -339,65 +350,6 @@
             return res;
         }
 
-        function initBackground() {
-            try {
-                const canvas = document.getElementById('bg-canvas');
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-
-                function resize() {
-                    canvas.width = window.innerWidth || 360;
-                    canvas.height = window.innerHeight || 640;
-                }
-                resize();
-                window.addEventListener('resize', resize);
-
-                let angle = 0;
-                function render() {
-                    ctx.fillStyle = "rgba(3, 3, 10, 0.4)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    const cx = canvas.width / 2;
-                    const cy = canvas.height * 0.28;
-
-                    angle += 0.01;
-
-                    ctx.save();
-                    ctx.translate(cx, cy);
-                    ctx.rotate(angle);
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 90, 0, Math.PI * 2);
-                    ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
-                    ctx.lineWidth = 3;
-                    ctx.setLineDash([10, 14]);
-                    ctx.stroke();
-                    ctx.restore();
-
-                    ctx.save();
-                    ctx.translate(cx, cy);
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, 70, 32, 0, 0, Math.PI * 2);
-                    ctx.fillStyle = "#000";
-                    ctx.fill();
-                    ctx.strokeStyle = "#00ffff";
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.arc(Math.sin(angle * 2) * 10, 0, 14, 0, Math.PI * 2);
-                    ctx.fillStyle = "#ff3366";
-                    ctx.fill();
-                    ctx.restore();
-
-                    requestAnimationFrame(render);
-                }
-                render();
-            } catch(e) {
-                console.log("Canvas failback: ", e);
-            }
-        }
-
         function drawClockToCanvas(canvasId, hour, minute) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
@@ -436,6 +388,7 @@
                 ctx.stroke();
             }
 
+            // Kim phút (xanh - dài)
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
             const minuteHandLength = radius * 0.70;
             ctx.beginPath();
@@ -446,6 +399,7 @@
             ctx.lineCap = "round";
             ctx.stroke();
 
+            // Kim giờ (đỏ - ngắn)
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
             const hourHandLength = radius * 0.45;
             ctx.beginPath();
@@ -520,12 +474,12 @@
             }
 
             let result = hours[0];
-            let htmlContent = `<canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas>`;
+            let htmlContent = `<canvas id="clock-0" class="clock-canvas" width="110" height="110"></canvas>`;
 
             for (let i = 1; i < count; i++) {
                 result += hours[i];
                 htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas>`;
+                htmlContent += `<canvas id="clock-${i}" class="clock-canvas" width="110" height="110"></canvas>`;
             }
 
             correctAnswer = ((result - 1) % 12 + 1);
@@ -625,10 +579,6 @@
                 setTimeout(nextPuzzle, 2000);
             }
         }
-
-        window.onload = function() {
-            initBackground();
-        };
     </script>
 </body>
 </html>
