@@ -21,10 +21,10 @@
             padding: 10px;
         }
 
-        /* Boss Chronos vẽ bằng CSS SVG - không bao giờ lo đơ/đen màn hình */
+        /* Boss Chronos to hơn một chút (200px) */
         .chronos-container {
             width: 100%;
-            height: 30vh;
+            height: 32vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,15 +33,15 @@
         }
 
         .chronos-svg {
-            width: 160px;
-            height: 160px;
-            filter: drop-shadow(0 0 15px #00ffff);
+            width: 200px;
+            height: 200px;
+            filter: drop-shadow(0 0 20px #00ffff);
             animation: floatAnim 3s infinite ease-in-out;
         }
 
         @keyframes floatAnim {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-12px); }
         }
 
         .ui-container {
@@ -236,25 +236,28 @@
         .screen.active { display: block; }
     </style>
 </head>
-<body>
+<body onclick="unlockAudio()">
+
+    <!-- Audio Elements cho nhạc nền YouTube -->
+    <!-- Menu Music: https://youtu.be/cH_Nk_PPCzQ -->
+    <audio id="menu-audio" loop src="https://www.youtube.com/watch?v=cH_Nk_PPCzQ" preload="auto"></audio>
+    <!-- Battle Music: https://youtu.be/0V49vqh2sTg -->
+    <audio id="battle-audio" loop src="https://www.youtube.com/watch?v=0V49vqh2sTg" preload="auto"></audio>
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
-    <!-- Nửa trên: Hình ảnh Boss Chronos phát sáng -->
+    <!-- Nửa trên: Boss Chronos to hơn -->
     <div class="chronos-container">
         <svg class="chronos-svg" viewBox="0 0 100 100">
-            <!-- Vòng thời gian bên ngoài -->
             <circle cx="50" cy="50" r="42" fill="none" stroke="#00ffff" stroke-width="2" stroke-dasharray="6,4" />
             <circle cx="50" cy="50" r="35" fill="#050515" stroke="#ff3366" stroke-width="1.5" />
-            <!-- Mắt Chronos -->
             <ellipse cx="50" cy="50" rx="25" ry="12" fill="#000" stroke="#00ffff" stroke-width="2" />
-            <!-- Con ngươi đỏ -->
             <circle cx="50" cy="50" r="6" fill="#ff3366" />
             <circle cx="50" cy="50" r="2" fill="#fff" />
         </svg>
     </div>
 
-    <!-- Nửa dưới: Khung câu hỏi và Menu -->
+    <!-- Nửa dưới: Giao diện game -->
     <div class="ui-container">
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="game-card screen active">
@@ -309,6 +312,7 @@
         let timerInterval = null;
         let isPlaying = false;
         let currentDifficulty = 'normal';
+        let audioUnlocked = false;
 
         const difficulties = {
             baby: { time: 3600000, count: 1, lives: 67 },
@@ -332,6 +336,29 @@
             "次もその運が続くかな？",
             "面白い…だが次はどうかな？"
         ];
+
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                audioUnlocked = true;
+                playMenuMusic();
+            }
+        }
+
+        function playMenuMusic() {
+            const menuAudio = document.getElementById("menu-audio");
+            const battleAudio = document.getElementById("battle-audio");
+            battleAudio.pause();
+            battleAudio.currentTime = 0;
+            menuAudio.play().catch(e => console.log("Audio autoplay restricted"));
+        }
+
+        function playBattleMusic() {
+            const menuAudio = document.getElementById("menu-audio");
+            const battleAudio = document.getElementById("battle-audio");
+            menuAudio.pause();
+            menuAudio.currentTime = 0;
+            battleAudio.play().catch(e => console.log("Audio autoplay restricted"));
+        }
 
         function toRoman(num) {
             if (num <= 0) return "0";
@@ -429,6 +456,7 @@
         }
 
         function startGame(diff) {
+            playBattleMusic();
             currentDifficulty = diff;
             maxTime = difficulties[diff].time;
             currentHp = maxHp;
@@ -451,6 +479,7 @@
         }
 
         function returnToMenu() {
+            playMenuMusic();
             clearInterval(timerInterval);
             isPlaying = false;
             document.getElementById("game-screen").classList.remove("active");
