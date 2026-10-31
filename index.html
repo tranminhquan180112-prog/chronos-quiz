@@ -317,7 +317,7 @@
         let isPlaying = false;
         let currentDifficulty = 'normal';
 
-        // Cập nhật thời gian theo yêu cầu: Easy 60s, Normal 45s, Hard 25s, Nightmare 20s
+        // Cập nhật thời gian chính xác: Easy 60s, Normal 45s, Hard 25s, Nightmare 20s
         const difficulties = {
             easy: { time: 60000, count: 1, lives: 3 },
             normal: { time: 45000, count: 2, lives: 3 },
@@ -609,3 +609,35 @@
                 } else {
                     let randomQuote = correctQuotes[Math.floor(Math.random() * correctQuotes.length)];
                     document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66;'>ĐÚNG! Chronos: "${randomQuote}" (-6,000 HP)</span>`;
+                    setTimeout(nextPuzzle, 1500);
+                }
+            } else {
+                handleFailure("SAI!");
+            }
+        }
+
+        function handleFailure(msg) {
+            isPlaying = false;
+            currentLives--;
+            updateLivesDisplay();
+
+            if (currentLives <= 0) {
+                document.getElementById("options-container").style.display = "none";
+                document.getElementById("timer-bar-box").style.display = "none";
+                document.getElementById("roman-timer-text").style.display = "none";
+                
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
+                document.getElementById("back-menu-btn").style.display = "inline-block";
+                document.getElementById("ingame-back-btn").style.display = "none";
+            } else {
+                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} Chronos: "バカ野郎！" (Đúng: ${toRoman(correctAnswer)})</span>`;
+                setTimeout(nextPuzzle, 2000);
+            }
+        }
+
+        window.onload = () => {
+            initBackground();
+        };
+    </script>
+</body>
+</html>
