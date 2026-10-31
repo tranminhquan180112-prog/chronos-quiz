@@ -26,7 +26,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 1;
+            z-index: 1; /* Nền 3D nằm ở dưới */
         }
 
         .ui-layer {
@@ -40,11 +40,11 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
-            pointer-events: none;
+            pointer-events: none; /* Cho phép click xuyên qua lớp nền để thấy 3D */
         }
 
         .game-card {
-            background: rgba(10, 10, 20, 0.95);
+            background: rgba(10, 10, 20, 0.85); /* Làm trong suốt nhẹ để thấy Boss phía sau */
             border: 2px solid #00ffff;
             border-radius: 20px;
             padding: 20px;
@@ -52,10 +52,10 @@
             max-width: 480px;
             text-align: center;
             box-shadow: 0 0 35px rgba(0, 255, 255, 0.4);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(4px);
             max-height: 95vh;
             overflow-y: auto;
-            pointer-events: auto;
+            pointer-events: auto; /* Nhận tương tác chuột/chạm */
         }
 
         .game-title {
@@ -423,7 +423,7 @@
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 0, 8);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
@@ -532,196 +532,4 @@
             notes.forEach((freq, index) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now + index * 0.15);
-                gain.gain.setValueAtTime(0.4, now + index * 0.15);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 0.2);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + index * 0.15);
-                osc.stop(now + index * 0.15 + 0.2);
-            });
-        }
-
-        function updateLivesDisplay() {
-            let hearts = "";
-            for (let i = 0; i < currentLives; i++) {
-                hearts += "❤️";
-            }
-            document.getElementById("lives-text").innerText = hearts;
-        }
-
-        function startGame(diff) {
-            currentDifficulty = diff;
-            maxTime = difficulties[diff].time;
-            currentHp = maxHp;
-            currentLives = difficulties[diff].lives;
-
-            document.getElementById("hp-text").innerText = currentHp;
-            document.getElementById("hp-bar").style.width = "100%";
-            updateLivesDisplay();
-            
-            document.getElementById("menu-screen").classList.remove("active");
-            document.getElementById("game-screen").classList.add("active");
-            document.getElementById("ingame-back-btn").style.display = "block";
-            document.getElementById("back-menu-btn").style.display = "none";
-            document.getElementById("options-container").style.display = "grid";
-            document.getElementById("timer-bar-box").style.display = "block";
-            
-            nextPuzzle();
-        }
-
-        function returnToMenu() {
-            clearInterval(timerInterval);
-            isPlaying = false;
-            document.getElementById("game-screen").classList.remove("active");
-            document.getElementById("menu-screen").classList.add("active");
-            document.getElementById("ingame-back-btn").style.display = "none";
-        }
-
-        function nextPuzzle() {
-            if (currentHp <= 0 || currentLives <= 0) return;
-            
-            isPlaying = true;
-            document.getElementById("puzzle-wrapper").style.display = "block";
-            document.getElementById("result-msg").innerText = "";
-            
-            let count = difficulties[currentDifficulty].count;
-            let hours = [];
-            
-            for (let i = 0; i < count; i++) {
-                hours.push(Math.floor(Math.random() * 12) + 1);
-            }
-
-            let result = hours[0];
-            let htmlContent = `<div class="clock-canvas-box"><canvas id="clock-0" class="clock-canvas" width="180" height="180"></canvas></div>`;
-
-            for (let i = 1; i < count; i++) {
-                result += hours[i];
-                htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<div class="clock-canvas-box"><canvas id="clock-${i}" class="clock-canvas" width="180" height="180"></canvas></div>`;
-            }
-
-            correctAnswer = ((result - 1) % 12 + 1);
-            if (correctAnswer <= 0) correctAnswer += 12;
-
-            document.getElementById("clocks-container").innerHTML = htmlContent;
-
-            for (let i = 0; i < count; i++) {
-                drawClockToCanvas(`clock-${i}`, hours[i]);
-            }
-
-            let options = [correctAnswer];
-            while (options.length < 4) {
-                let wrongAns = Math.floor(Math.random() * 12) + 1;
-                if (!options.includes(wrongAns)) {
-                    options.push(wrongAns);
-                }
-            }
-            options.sort(() => Math.random() - 0.5);
-
-            let optionsHtml = "";
-            options.forEach(opt => {
-                optionsHtml += `<button class="btn-option" onclick="selectAnswer(${opt})">${toRoman(opt)}</button>`;
-            });
-            document.getElementById("options-container").innerHTML = optionsHtml;
-
-            const timerLine = document.getElementById("timer-line");
-            const romanText = document.getElementById("roman-timer-text");
-            
-            timerLine.style.width = "100%";
-            romanText.innerText = toRoman(Math.ceil(maxTime / 1000));
-
-            clearInterval(timerInterval);
-            let startTime = Date.now();
-            
-            timerInterval = setInterval(() => {
-                let elapsed = Date.now() - startTime;
-                let remaining = Math.max(0, maxTime - elapsed);
-                
-                timerLine.style.width = (remaining / maxTime * 100) + "%";
-                let secondsLeft = Math.ceil(remaining / 1000);
-                romanText.innerText = toRoman(secondsLeft);
-
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    handleFailure("HẾT GIỜ! Bạn mất 1 mạng.");
-                }
-            }, 50);
-        }
-
-        function selectAnswer(selected) {
-            if (!isPlaying) return;
-            
-            clearInterval(timerInterval);
-            isPlaying = false;
-
-            if (selected === correctAnswer) {
-                playCorrectSound();
-
-                currentHp -= damagePerHit;
-                if (currentHp < 0) currentHp = 0;
-                document.getElementById("hp-text").innerText = currentHp;
-                document.getElementById("hp-bar").style.width = (currentHp / maxHp * 100) + "%";
-
-                if (currentHp <= 0) {
-                    document.getElementById("options-container").style.display = "none";
-                    document.getElementById("timer-bar-box").style.display = "none";
-                    document.getElementById("roman-timer-text").innerText = "";
-                    
-                    let quote = victoryQuotes[currentDifficulty];
-                    document.getElementById("result-msg").innerHTML = `<span style='color: #00ff66; font-size: 14px;'><b>YOU WON!</b><br><br>"${quote}"</span>`;
-                    document.getElementById("back-menu-btn").style.display = "inline-block";
-                    document.getElementById("ingame-back-btn").style.display = "none";
-                } else {
-                    document.getElementById("result-msg").innerHTML = "<span style='color: #00ff66;'>CHÍNH XÁC! Chronos bị trừ 6,000 HP.</span>";
-                    setTimeout(nextPuzzle, 1500);
-                }
-            } else {
-                handleFailure("SAI ĐÁP ÁN! Bạn mất 1 mạng.");
-            }
-        }
-
-        function handleFailure(msg) {
-            isPlaying = false;
-            currentLives--;
-            updateLivesDisplay();
-
-            if (currentLives <= 0) {
-                playGameOverSound();
-                document.getElementById("options-container").style.display = "none";
-                document.getElementById("timer-bar-box").style.display = "none";
-                document.getElementById("roman-timer-text").innerText = "";
-                
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>GAME OVER! バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
-                document.getElementById("back-menu-btn").style.display = "inline-block";
-                document.getElementById("ingame-back-btn").style.display = "none";
-            } else {
-                playWrongSound();
-                document.getElementById("result-msg").innerHTML = `<span style='color: #ff3333;'>${msg} バカ野郎！ (Đáp án đúng: ${toRoman(correctAnswer)})</span>`;
-                setTimeout(nextPuzzle, 2000);
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            } catch(e) {}
-
-            init3D();
-
-            document.querySelectorAll(".btn-diff").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    if (audioCtx && audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                    startGame(btn.getAttribute("data-diff"));
-                });
-            });
-
-            document.getElementById("ingame-back-btn").addEventListener("click", returnToMenu);
-            document.getElementById("back-menu-btn").addEventListener("click", returnToMenu);
-        });
-    </script>
-</body>
-</html>
+                osc.type = 'triangle
