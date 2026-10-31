@@ -2,18 +2,19 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chronos Quiz - God of Time</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html {
+        html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden;
             background-color: #03030a;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: monospace, 'Courier New', Courier;
             color: #fff;
             user-select: none;
+            overflow: hidden;
+            position: relative;
         }
 
         #bg-canvas {
@@ -23,6 +24,7 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            pointer-events: none;
         }
 
         .ui-layer {
@@ -33,45 +35,42 @@
             height: 100%;
             z-index: 2;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
             padding: 10px;
         }
 
         #menu-screen {
-            background: rgba(10, 10, 24, 0.90);
+            background: #0a0a18;
             border: 2px solid #00ffff;
             border-radius: 16px;
             padding: 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             text-align: center;
-            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
-            backdrop-filter: blur(6px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
         }
 
         #game-screen {
             position: absolute;
-            bottom: 10px;
-            background: rgba(10, 10, 24, 0.85);
+            bottom: 12px;
+            background: rgba(10, 10, 24, 0.92);
             border: 2px solid #00ffff;
             border-radius: 14px;
-            padding: 10px 14px;
+            padding: 10px;
             width: 95%;
-            max-width: 380px;
+            max-width: 360px;
             text-align: center;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-            backdrop-filter: blur(4px);
         }
 
         .game-title {
-            font-size: 26px;
-            font-weight: 900;
+            font-size: 24px;
+            font-weight: bold;
             color: #00ffff;
-            margin: 0;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px #00ffff;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .game-subtitle {
@@ -83,7 +82,7 @@
         }
 
         .instructions {
-            background: rgba(0, 0, 0, 0.7);
+            background: #000;
             border-left: 3px solid #ffcc00;
             padding: 6px 8px;
             text-align: left;
@@ -107,62 +106,59 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            padding: 8px 12px;
-            margin: 4px 0;
+            padding: 9px 12px;
+            margin: 5px 0;
             font-size: 11px;
             font-weight: bold;
             border: 2px solid;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
             text-transform: uppercase;
+            background: #111122;
         }
-        .btn-baby { background: rgba(255, 105, 180, 0.15); color: #ff69b4; border-color: #ff69b4; }
-        .btn-easy { background: rgba(0, 255, 102, 0.1); color: #00ff66; border-color: #00ff66; }
-        .btn-normal { background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: #00e5ff; }
-        .btn-hard { background: rgba(255, 153, 0, 0.1); color: #ff9900; border-color: #ff9900; }
-        .btn-nightmare { background: rgba(255, 51, 51, 0.15); color: #ff3333; border-color: #ff3333; }
-        .btn-diff:hover { filter: brightness(1.3); transform: scale(1.01); }
+        .btn-baby { color: #ff69b4; border-color: #ff69b4; }
+        .btn-easy { color: #00ff66; border-color: #00ff66; }
+        .btn-normal { color: #00e5ff; border-color: #00e5ff; }
+        .btn-hard { color: #ff9900; border-color: #ff9900; }
+        .btn-nightmare { color: #ff3333; border-color: #ff3333; }
 
         .back-ingame-btn {
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 10px;
+            left: 10px;
             z-index: 10;
-            background: rgba(255, 51, 51, 0.2);
+            background: #220000;
             border: 2px solid #ff3333;
             color: #ff3333;
-            padding: 6px 12px;
+            padding: 5px 10px;
             font-size: 11px;
             font-weight: bold;
             border-radius: 6px;
-            cursor: pointer;
             display: none;
         }
-        .back-ingame-btn:hover { background: #ff3333; color: #fff; }
 
         .hud-overlay {
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid rgba(255, 51, 51, 0.5);
+            background: #000;
+            border: 1px solid #ff3333;
             border-radius: 8px;
-            padding: 5px 8px;
+            padding: 4px 8px;
             text-align: center;
             margin-bottom: 6px;
         }
 
         .hp-bar-container {
             width: 100%;
-            background: #111;
-            height: 7px;
+            background: #222;
+            height: 6px;
             border-radius: 3px;
             overflow: hidden;
             border: 1px solid #ff3333;
             margin-top: 2px;
         }
-        .hp-fill { width: 100%; height: 100%; background: #e63232; transition: width 0.3s; }
+        .hp-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.3s; }
 
         .lives-display {
-            font-size: 12px;
+            font-size: 11px;
             color: #ff3366;
             margin-top: 2px;
             font-weight: bold;
@@ -175,60 +171,45 @@
             flex-wrap: wrap;
             gap: 6px;
             margin: 6px 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: #000;
             padding: 6px;
             border-radius: 8px;
-            border: 1px dashed rgba(0, 255, 255, 0.4);
-        }
-
-        .clock-canvas-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 3px;
-            border-radius: 6px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
+            border: 1px dashed #00ffff;
         }
 
         .clock-canvas {
             width: 60px;
             height: 60px;
+            background: #111122;
+            border-radius: 50%;
         }
 
         .math-symbol { font-size: 16px; font-weight: bold; color: #ffcc00; }
 
         .roman-timer {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: #ff3333;
             margin-top: 2px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 5px #ff3333;
+            letter-spacing: 1px;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
+            gap: 6px;
             margin: 6px 0;
         }
 
         .btn-option {
-            background: rgba(0, 255, 255, 0.1);
+            background: #111122;
             border: 1.5px solid #00ffff;
             color: #fff;
-            padding: 6px;
+            padding: 8px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            letter-spacing: 1px;
-        }
-        .btn-option:hover {
-            background: #00ffff;
-            color: #000;
         }
 
         .timer-bar {
@@ -239,20 +220,19 @@
             margin-top: 4px;
             overflow: hidden;
         }
-        .timer-fill { width: 100%; height: 100%; background: #ff3333; transition: width 0.05s linear; }
+        .timer-fill { width: 100%; height: 100%; background: #ff3333; }
 
         .btn-action {
             background: #00ffff;
             color: #000;
             border: none;
-            padding: 5px 12px;
+            padding: 6px 14px;
             font-size: 11px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
             margin-top: 4px;
         }
-        .btn-action:hover { background: #00b3b3; }
 
         .screen { display: none; }
         .screen.active { display: block; }
@@ -272,11 +252,11 @@
             
             <div class="instructions">
                 • <b>Cách tính:</b> Chỉ cộng giá trị <b>KIM GIỜ ĐỎ (NGẮN)</b>.<br>
-                • Kim phút xanh dương được thêm vào để đánh lừa thị giác.
+                • Kim phút xanh được thêm vào để thử thách.
             </div>
 
             <div class="difficulty-header">CHỌN MỨC ĐỘ THỬ THÁCH:</div>
-            <button class="btn-diff btn-baby" onclick="startGame('baby')"><span>Baby (1 Đồng - 67 Mạng) <i style="font-size:9px;">(chỉ dành cho em bé)</i></span> <span>3600s</span></button>
+            <button class="btn-diff btn-baby" onclick="startGame('baby')"><span>Baby (1 Đồng - 67 Mạng) <i style="font-size:8px;">(chỉ dành cho em bé)</i></span> <span>3600s</span></button>
             <button class="btn-diff btn-easy" onclick="startGame('easy')"><span>1. Easy (1 Đồng - 3 Mạng)</span> <span>60s</span></button>
             <button class="btn-diff btn-normal" onclick="startGame('normal')"><span>2. Normal (2 Đồng - 3 Mạng)</span> <span>45s</span></button>
             <button class="btn-diff btn-hard" onclick="startGame('hard')"><span>3. Hard (3 Đồng - 2 Mạng)</span> <span>25s</span></button>
@@ -292,7 +272,7 @@
                 <div class="lives-display" id="lives-text">❤️❤️❤️</div>
             </div>
 
-            <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 9px; letter-spacing: 1px;">COUNT YOUR DAYS!</p>
+            <p style="margin: 0; color: #00ffff; font-weight: bold; font-size: 9px;">COUNT YOUR DAYS!</p>
             
             <div class="clocks-display" id="clocks-container"></div>
             <div class="options-grid" id="options-container"></div>
@@ -360,66 +340,70 @@
         }
 
         function initBackground() {
-            const canvas = document.getElementById('bg-canvas');
-            const ctx = canvas.getContext('2d');
+            try {
+                const canvas = document.getElementById('bg-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
 
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                function resize() {
+                    canvas.width = window.innerWidth || 360;
+                    canvas.height = window.innerHeight || 640;
+                }
+                resize();
+                window.addEventListener('resize', resize);
+
+                let angle = 0;
+                function render() {
+                    ctx.fillStyle = "rgba(3, 3, 10, 0.4)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height * 0.28;
+
+                    angle += 0.01;
+
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 90, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([10, 14]);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 70, 32, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = "#000";
+                    ctx.fill();
+                    ctx.strokeStyle = "#00ffff";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(Math.sin(angle * 2) * 10, 0, 14, 0, Math.PI * 2);
+                    ctx.fillStyle = "#ff3366";
+                    ctx.fill();
+                    ctx.restore();
+
+                    requestAnimationFrame(render);
+                }
+                render();
+            } catch(e) {
+                console.log("Canvas failback: ", e);
             }
-            resize();
-            window.addEventListener('resize', resize);
-
-            let angle = 0;
-            function render() {
-                ctx.fillStyle = "rgba(3, 3, 10, 0.4)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                const cx = canvas.width / 2;
-                const cy = canvas.height * 0.28;
-
-                angle += 0.01;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.arc(0, 0, 100, 0, Math.PI * 2);
-                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
-                ctx.lineWidth = 3;
-                ctx.setLineDash([10, 14]);
-                ctx.stroke();
-                ctx.restore();
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 80, 36, 0, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-                ctx.fill();
-                ctx.strokeStyle = "#00ffff";
-                ctx.lineWidth = 3.5;
-                ctx.shadowColor = "#00ffff";
-                ctx.shadowBlur = 15;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(Math.sin(angle * 2) * 12, 0, 16, 0, Math.PI * 2);
-                ctx.fillStyle = "#ff3366";
-                ctx.shadowColor = "#ff3366";
-                ctx.shadowBlur = 10;
-                ctx.fill();
-                ctx.restore();
-
-                requestAnimationFrame(render);
-            }
-            render();
         }
 
         function drawClockToCanvas(canvasId, hour, minute) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            
             const width = canvas.width;
             const height = canvas.height;
             const radius = width / 2;
@@ -453,7 +437,7 @@
             }
 
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
-            const minuteHandLength = radius * 0.72;
+            const minuteHandLength = radius * 0.70;
             ctx.beginPath();
             ctx.moveTo(radius, radius);
             ctx.lineTo(radius + Math.cos(minuteAngle) * minuteHandLength, radius + Math.sin(minuteAngle) * minuteHandLength);
@@ -463,7 +447,7 @@
             ctx.stroke();
 
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
-            const hourHandLength = radius * 0.48;
+            const hourHandLength = radius * 0.45;
             ctx.beginPath();
             ctx.moveTo(radius, radius);
             ctx.lineTo(radius + Math.cos(hourAngle) * hourHandLength, radius + Math.sin(hourAngle) * hourHandLength);
@@ -536,12 +520,12 @@
             }
 
             let result = hours[0];
-            let htmlContent = `<div class="clock-canvas-box"><canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas></div>`;
+            let htmlContent = `<canvas id="clock-0" class="clock-canvas" width="120" height="120"></canvas>`;
 
             for (let i = 1; i < count; i++) {
                 result += hours[i];
                 htmlContent += `<span class="math-symbol">+</span>`;
-                htmlContent += `<div class="clock-canvas-box"><canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas></div>`;
+                htmlContent += `<canvas id="clock-${i}" class="clock-canvas" width="120" height="120"></canvas>`;
             }
 
             correctAnswer = ((result - 1) % 12 + 1);
@@ -642,7 +626,7 @@
             }
         }
 
-        window.onload = () => {
+        window.onload = function() {
             initBackground();
         };
     </script>
