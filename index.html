@@ -21,7 +21,6 @@
             padding: 10px;
         }
 
-        /* Boss Chronos to hơn một chút (200px) */
         .chronos-container {
             width: 100%;
             height: 32vh;
@@ -133,6 +132,7 @@
             font-weight: bold;
             border-radius: 6px;
             display: none;
+            cursor: pointer;
         }
 
         .hud-overlay {
@@ -238,15 +238,13 @@
 </head>
 <body onclick="unlockAudio()">
 
-    <!-- Audio Elements cho nhạc nền YouTube -->
-    <!-- Menu Music: https://youtu.be/cH_Nk_PPCzQ -->
+    <!-- Nhạc nền YouTube -->
     <audio id="menu-audio" loop src="https://www.youtube.com/watch?v=cH_Nk_PPCzQ" preload="auto"></audio>
-    <!-- Battle Music: https://youtu.be/0V49vqh2sTg -->
     <audio id="battle-audio" loop src="https://www.youtube.com/watch?v=0V49vqh2sTg" preload="auto"></audio>
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
-    <!-- Nửa trên: Boss Chronos to hơn -->
+    <!-- Boss Chronos (SVG) -->
     <div class="chronos-container">
         <svg class="chronos-svg" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="42" fill="none" stroke="#00ffff" stroke-width="2" stroke-dasharray="6,4" />
@@ -257,7 +255,6 @@
         </svg>
     </div>
 
-    <!-- Nửa dưới: Giao diện game -->
     <div class="ui-container">
         <!-- MENU SCREEN -->
         <div id="menu-screen" class="game-card screen active">
@@ -323,7 +320,7 @@
         };
 
         const victoryQuotes = {
-            baby: "赤ちゃんつよいね…！",
+            baby: "なんで私がこの子の面倒を見なきゃいけないの?",
             easy: "ただ試していただけさ",
             normal: "さあ、本気を出そうか",
             hard: "何かおかしいぞ…",
@@ -415,7 +412,6 @@
                 ctx.stroke();
             }
 
-            // Kim phút (xanh - dài)
             const minuteAngle = (minute * 6 - 90) * (Math.PI / 180);
             const minuteHandLength = radius * 0.70;
             ctx.beginPath();
@@ -426,7 +422,6 @@
             ctx.lineCap = "round";
             ctx.stroke();
 
-            // Kim giờ (đỏ - ngắn)
             const hourAngle = (((hour % 12) + minute / 60) * 30 - 90) * (Math.PI / 180);
             const hourHandLength = radius * 0.45;
             ctx.beginPath();
