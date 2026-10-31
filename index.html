@@ -236,10 +236,7 @@
         .screen.active { display: block; }
     </style>
 </head>
-<body onclick="unlockAudio()">
-
-    <audio id="menu-audio" loop src="https://www.youtube.com/watch?v=cH_Nk_PPCzQ" preload="auto"></audio>
-    <audio id="battle-audio" loop src="https://www.youtube.com/watch?v=0V49vqh2sTg" preload="auto"></audio>
+<body>
 
     <button class="back-ingame-btn" id="ingame-back-btn" onclick="returnToMenu()">⬅ MENU</button>
 
@@ -307,7 +304,7 @@
         let timerInterval = null;
         let isPlaying = false;
         let currentDifficulty = 'normal';
-        let audioUnlocked = false;
+        let audioCtx = null;
 
         const difficulties = {
             baby: { time: 3600000, count: 1, lives: 67 },
@@ -332,27 +329,41 @@
             "面白い…だが次はどうかな？"
         ];
 
-        function unlockAudio() {
-            if (!audioUnlocked) {
-                audioUnlocked = true;
-                playMenuMusic();
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
         }
 
-        function playMenuMusic() {
-            const menuAudio = document.getElementById("menu-audio");
-            const battleAudio = document.getElementById("battle-audio");
-            battleAudio.pause();
-            battleAudio.currentTime = 0;
-            menuAudio.play().catch(e => console.log("Audio autoplay restricted"));
-        }
+        function playSound(type) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
 
-        function playBattleMusic() {
-            const menuAudio = document.getElementById("menu-audio");
-            const battleAudio = document.getElementById("battle-audio");
-            menuAudio.pause();
-            menuAudio.currentTime = 0;
-            battleAudio.play().catch(e => console.log("Audio autoplay restricted"));
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch(e) {}
         }
 
         function toRoman(num) {
@@ -449,7 +460,7 @@
         }
 
         function startGame(diff) {
-            playBattleMusic();
+            initAudio();
             currentDifficulty = diff;
             maxTime = difficulties[diff].time;
             currentHp = maxHp;
@@ -472,7 +483,6 @@
         }
 
         function returnToMenu() {
-            playMenuMusic();
             clearInterval(timerInterval);
             isPlaying = false;
             document.getElementById("game-screen").classList.remove("active");
@@ -559,6 +569,7 @@
             isPlaying = false;
 
             if (selected === correctAnswer) {
+                playSound('correct');
                 currentHp -= damagePerHit;
                 if (currentHp < 0) currentHp = 0;
                 document.getElementById("hp-text").innerText = currentHp;
@@ -584,6 +595,7 @@
         }
 
         function handleFailure(msg) {
+            playSound('wrong');
             isPlaying = false;
             currentLives--;
             updateLivesDisplay();
